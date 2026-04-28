@@ -16,7 +16,6 @@ package pipelines
 
 import (
 	"bytes"
-	"context"
 	"encoding/json"
 	"fmt"
 	"io"
@@ -31,19 +30,10 @@ import (
 	"github.com/datarobot/cli/internal/config"
 	"github.com/datarobot/cli/internal/drapi"
 	"github.com/datarobot/cli/internal/log"
-	"github.com/spf13/viper"
 )
 
-// resolveToken mirrors the helper in drapi: when --skip-auth (or
-// DATAROBOT_CLI_SKIP_AUTH) is active we trust the viper-stored token without
-// contacting the server. Otherwise we go through the standard verify path.
-func resolveToken() (string, error) {
-	if viper.GetBool("skip_auth") {
-		return viper.GetString(config.DataRobotAPIKey), nil
-	}
-
-	return config.GetAPIKey(context.Background())
-}
+// uploadTimeout is the per-request timeout used for multipart file uploads.
+const uploadTimeout = 60 * time.Second
 
 // Mode values accepted by the pipelines API.
 const (
@@ -221,9 +211,7 @@ func doMultipart(method, endpoint, filePath string, fields map[string]string, in
 		log.Debug("Request Info: \n" + config.RedactedReqInfo(req))
 	}
 
-	client := &http.Client{
-		Timeout: 60 * time.Second,
-	}
+	client := drapi.NewHTTPClient(uploadTimeout)
 
 	resp, err := client.Do(req)
 	if err != nil {
@@ -244,14 +232,9 @@ func doMultipart(method, endpoint, filePath string, fields map[string]string, in
 }
 
 // buildMultipartRequest assembles the multipart body and HTTP request with
-// authentication and tracing headers populated.
+// authentication and tracing headers populated via drapi.AuthorizeRequest.
 func buildMultipartRequest(method, endpoint, filePath string, fields map[string]string) (*http.Request, error) {
 	body, contentType, err := buildMultipartBody(filePath, fields)
-	if err != nil {
-		return nil, err
-	}
-
-	token, err := resolveToken()
 	if err != nil {
 		return nil, err
 	}
@@ -261,13 +244,14 @@ func buildMultipartRequest(method, endpoint, filePath string, fields map[string]
 		return nil, err
 	}
 
-	req.Header.Set("Authorization", "Bearer "+token)
-	req.Header.Set("User-Agent", config.GetUserAgentHeader())
-	req.Header.Set("Content-Type", contentType)
-
-	if config.IsAPIConsumerTrackingEnabled() {
-		req.Header.Set("X-DataRobot-Api-Consumer-Trace", config.GetAPIConsumerTrace())
+	// Authorization, User-Agent, and consumer-trace are owned by drapi so
+	// every CLI command sends consistent headers.
+	err = drapi.AuthorizeRequest(req)
+	if err != nil {
+		return nil, err
 	}
+
+	req.Header.Set("Content-Type", contentType)
 
 	return req, nil
 }
