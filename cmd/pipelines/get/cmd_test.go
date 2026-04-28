@@ -17,11 +17,13 @@ package get
 import (
 	"bytes"
 	"encoding/json"
+	"errors"
 	"io"
 	"os"
 	"testing"
 	"time"
 
+	"github.com/datarobot/cli/internal/drapi"
 	"github.com/datarobot/cli/internal/pipelines"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
@@ -168,4 +170,35 @@ func TestCmd_RejectsInvalidOutput(t *testing.T) {
 func TestCmd_HasOutputFlag(t *testing.T) {
 	cmd := Cmd()
 	assert.NotNil(t, cmd.Flags().Lookup("output"))
+}
+
+func TestHandleGetError_NotFoundPrintsFriendlyMessage(t *testing.T) {
+	httpErr := &drapi.HTTPError{StatusCode: 404, URL: "http://example/api/v2/pipelines/abc"}
+
+	output := captureStdout(t, func() {
+		err := handleGetError(httpErr, "abc")
+		assert.NoError(t, err)
+	})
+
+	assert.Contains(t, output, "No pipeline found with id: abc")
+}
+
+func TestHandleGetError_OtherErrorsPassThrough(t *testing.T) {
+	otherHTTP := &drapi.HTTPError{StatusCode: 500, URL: "http://example/api/v2/pipelines/abc"}
+
+	output := captureStdout(t, func() {
+		err := handleGetError(otherHTTP, "abc")
+		require.Error(t, err)
+		assert.Same(t, otherHTTP, err)
+	})
+
+	assert.NotContains(t, output, "No pipeline found")
+}
+
+func TestHandleGetError_NonHTTPErrorPassesThrough(t *testing.T) {
+	plain := errors.New("network unreachable")
+
+	err := handleGetError(plain, "abc")
+	require.Error(t, err)
+	assert.Equal(t, plain, err)
 }

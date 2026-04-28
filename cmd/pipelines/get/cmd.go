@@ -16,7 +16,9 @@ package get
 
 import (
 	"encoding/json"
+	"errors"
 	"fmt"
+	"net/http"
 	"os"
 	"strconv"
 	"strings"
@@ -24,6 +26,7 @@ import (
 	"time"
 
 	"github.com/datarobot/cli/internal/auth"
+	"github.com/datarobot/cli/internal/drapi"
 	"github.com/datarobot/cli/internal/pipelines"
 	"github.com/datarobot/cli/tui"
 	"github.com/spf13/cobra"
@@ -42,8 +45,9 @@ By default, output is human-readable. Use --output json for machine-parseable ou
 Example:
   dr pipelines get 8a8d6e5e-1234-5678-90ab-cdef01234567
   dr pipelines get 8a8d6e5e-1234-5678-90ab-cdef01234567 --output json`,
-		Args:    cobra.ExactArgs(1),
-		PreRunE: auth.EnsureAuthenticatedE,
+		Args:         cobra.ExactArgs(1),
+		PreRunE:      auth.EnsureAuthenticatedE,
+		SilenceUsage: true,
 		RunE: func(_ *cobra.Command, args []string) error {
 			if outputFormat != "" && outputFormat != "json" {
 				return fmt.Errorf("invalid output format: %s (supported: json)", outputFormat)
@@ -51,7 +55,7 @@ Example:
 
 			pipeline, err := pipelines.GetPipeline(args[0])
 			if err != nil {
-				return err
+				return handleGetError(err, args[0])
 			}
 
 			if outputFormat == "json" {
@@ -67,6 +71,22 @@ Example:
 	cmd.Flags().StringVar(&outputFormat, "output", "", "Output format (json)")
 
 	return cmd
+}
+
+// handleGetError translates a GetPipeline error into a user-facing message.
+// A 404 is rendered as a friendly "No pipeline found" line on stdout and
+// suppressed (returns nil) so the user does not see an HTTP-style stack
+// or the command's usage on what is really an informational outcome.
+func handleGetError(err error, pipelineID string) error {
+	var httpErr *drapi.HTTPError
+
+	if errors.As(err, &httpErr) && httpErr.StatusCode == http.StatusNotFound {
+		fmt.Println(tui.DimStyle.Render("No pipeline found with id: " + pipelineID))
+
+		return nil
+	}
+
+	return err
 }
 
 func printGetJSON(pipeline pipelines.Pipeline) error {
