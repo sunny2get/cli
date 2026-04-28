@@ -1,0 +1,96 @@
+// Copyright 2026 DataRobot, Inc. and its affiliates.
+//
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+//     http://www.apache.org/licenses/LICENSE-2.0
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
+
+package update
+
+import (
+	"encoding/json"
+	"fmt"
+	"strings"
+	"time"
+
+	"github.com/datarobot/cli/internal/auth"
+	"github.com/datarobot/cli/internal/pipelines"
+	"github.com/datarobot/cli/tui"
+	"github.com/spf13/cobra"
+)
+
+func Cmd() *cobra.Command {
+	var outputFormat string
+
+	cmd := &cobra.Command{
+		Use:   "update <pipeline-id> <file>",
+		Short: "Re-upload a Python file to update a draft pipeline.",
+		Long: `Update an existing draft pipeline by re-uploading a Python file.
+
+A new version is appended to the pipeline. The lattice name in the uploaded
+file must match the existing pipeline name. Locked pipelines cannot be updated.
+
+By default, output is human-readable. Use --output json for machine-parseable output.
+
+Example:
+  dr pipelines update 8a8d6e5e-1234-5678-90ab-cdef01234567 ./my_pipeline.py
+  dr pipelines update 8a8d6e5e-1234-5678-90ab-cdef01234567 ./my_pipeline.py --output json`,
+		Args:    cobra.ExactArgs(2),
+		PreRunE: auth.EnsureAuthenticatedE,
+		RunE: func(_ *cobra.Command, args []string) error {
+			if outputFormat != "" && outputFormat != "json" {
+				return fmt.Errorf("invalid output format: %s (supported: json)", outputFormat)
+			}
+
+			result, err := pipelines.UpdatePipeline(args[0], args[1])
+			if err != nil {
+				return err
+			}
+
+			if outputFormat == "json" {
+				return printUpdateJSON(*result)
+			}
+
+			printUpdateHuman(*result)
+
+			return nil
+		},
+	}
+
+	cmd.Flags().StringVar(&outputFormat, "output", "", "Output format (json)")
+
+	return cmd
+}
+
+func printUpdateJSON(result pipelines.CreateResponse) error {
+	data, err := json.MarshalIndent(result, "", "  ")
+	if err != nil {
+		return err
+	}
+
+	fmt.Println(string(data))
+
+	return nil
+}
+
+func printUpdateHuman(result pipelines.CreateResponse) {
+	electrons := "\u2014"
+	if len(result.ElectronNames) > 0 {
+		electrons = strings.Join(result.ElectronNames, ", ")
+	}
+
+	fmt.Println(tui.BaseTextStyle.Render("Pipeline:  " + result.PipelineID))
+	fmt.Println(tui.BaseTextStyle.Render("Name:      " + result.Name))
+	fmt.Println(tui.BaseTextStyle.Render(fmt.Sprintf("Version:   %d", result.Version)))
+	fmt.Println(tui.BaseTextStyle.Render("Status:    " + result.Status))
+	fmt.Println(tui.BaseTextStyle.Render("Mode:      " + result.Mode))
+	fmt.Println(tui.BaseTextStyle.Render("Electrons: " + electrons))
+	fmt.Println(tui.DimStyle.Render("Updated:   " + result.CreatedAt.UTC().Format(time.RFC3339)))
+}
