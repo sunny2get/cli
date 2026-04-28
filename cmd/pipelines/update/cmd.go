@@ -16,6 +16,7 @@ package update
 
 import (
 	"encoding/json"
+	"errors"
 	"fmt"
 	"strings"
 	"time"
@@ -27,29 +28,43 @@ import (
 )
 
 func Cmd() *cobra.Command {
-	var outputFormat string
+	var (
+		outputFormat string
+		fromFile     string
+	)
 
 	cmd := &cobra.Command{
-		Use:   "update <pipeline-id> <file>",
+		Use:   "update <pipeline-id> [<file>]",
 		Short: "Re-upload a Python file to update a draft pipeline.",
 		Long: `Update an existing draft pipeline by re-uploading a Python file.
 
 A new version is appended to the pipeline. The lattice name in the uploaded
 file must match the existing pipeline name. Locked pipelines cannot be updated.
 
+The path to the Python file can be supplied either as a positional argument
+or via the --from-file=<path> flag. Exactly one of the two must be provided.
+
 By default, output is human-readable. Use --output json for machine-parseable output.
 
 Example:
   dr pipelines update 8a8d6e5e-1234-5678-90ab-cdef01234567 ./my_pipeline.py
-  dr pipelines update 8a8d6e5e-1234-5678-90ab-cdef01234567 ./my_pipeline.py --output json`,
-		Args:    cobra.ExactArgs(2),
+  dr pipelines update 8a8d6e5e-1234-5678-90ab-cdef01234567 --from-file=./my_pipeline.py
+  dr pipelines update 8a8d6e5e-1234-5678-90ab-cdef01234567 --from-file=./my_pipeline.py --output json`,
+		Args:    cobra.RangeArgs(1, 2),
 		PreRunE: auth.EnsureAuthenticatedE,
 		RunE: func(_ *cobra.Command, args []string) error {
 			if outputFormat != "" && outputFormat != "json" {
 				return fmt.Errorf("invalid output format: %s (supported: json)", outputFormat)
 			}
 
-			result, err := pipelines.UpdatePipeline(args[0], args[1])
+			pipelineID := args[0]
+
+			filePath, err := resolveFilePath(args[1:], fromFile)
+			if err != nil {
+				return err
+			}
+
+			result, err := pipelines.UpdatePipeline(pipelineID, filePath)
 			if err != nil {
 				return err
 			}
@@ -65,8 +80,29 @@ Example:
 	}
 
 	cmd.Flags().StringVar(&outputFormat, "output", "", "Output format (json)")
+	cmd.Flags().StringVar(&fromFile, "from-file", "", "Path to the Python file to upload, e.g. --from-file=./my_pipeline.py (alternative to the positional argument)")
 
 	return cmd
+}
+
+// resolveFilePath returns the file path supplied either positionally (in
+// extraArgs) or via --from-file. Exactly one of the two must be provided.
+func resolveFilePath(extraArgs []string, fromFile string) (string, error) {
+	positional := ""
+	if len(extraArgs) > 0 {
+		positional = extraArgs[0]
+	}
+
+	switch {
+	case positional != "" && fromFile != "":
+		return "", errors.New("specify the file either as a positional argument or via --from-file, not both")
+	case positional != "":
+		return positional, nil
+	case fromFile != "":
+		return fromFile, nil
+	default:
+		return "", errors.New("a file path is required (positional argument or --from-file)")
+	}
 }
 
 func printUpdateJSON(result pipelines.CreateResponse) error {

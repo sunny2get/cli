@@ -104,14 +104,72 @@ func TestPrintCreateHuman_NoElectrons(t *testing.T) {
 	assert.Contains(t, output, "Electrons: \u2014")
 }
 
-func TestCmd_RequiresArg(t *testing.T) {
+func TestCmd_RequiresFilePath(t *testing.T) {
 	cmd := Cmd()
 	cmd.SetArgs([]string{})
 	cmd.SetOut(io.Discard)
 	cmd.SetErr(io.Discard)
+	cmd.PreRunE = nil // bypass auth
 
 	err := cmd.Execute()
 	require.Error(t, err)
+	assert.Contains(t, err.Error(), "a file path is required")
+}
+
+func TestCmd_RejectsBothPositionalAndFromFile(t *testing.T) {
+	cmd := Cmd()
+	cmd.SetArgs([]string{"a.py", "--from-file=b.py"})
+	cmd.SetOut(io.Discard)
+	cmd.SetErr(io.Discard)
+	cmd.PreRunE = nil
+
+	err := cmd.Execute()
+	require.Error(t, err)
+	assert.Contains(t, err.Error(), "not both")
+}
+
+// TestCmd_FromFileEqualsSyntax ensures the documented --from-file=<path>
+// form parses correctly (cobra accepts both `--from-file value` and
+// `--from-file=value`; we exercise the equals form here).
+func TestCmd_FromFileEqualsSyntax(t *testing.T) {
+	cmd := Cmd()
+	cmd.SetArgs([]string{"--from-file=./my_pipeline.py"})
+	cmd.SetOut(io.Discard)
+	cmd.SetErr(io.Discard)
+	cmd.PreRunE = nil
+
+	flag := cmd.Flags().Lookup("from-file")
+	require.NotNil(t, flag)
+
+	err := cmd.ParseFlags([]string{"--from-file=./my_pipeline.py"})
+	require.NoError(t, err)
+	assert.Equal(t, "./my_pipeline.py", flag.Value.String())
+}
+
+func TestResolveFilePath(t *testing.T) {
+	t.Run("positional only", func(t *testing.T) {
+		got, err := resolveFilePath([]string{"a.py"}, "")
+		require.NoError(t, err)
+		assert.Equal(t, "a.py", got)
+	})
+
+	t.Run("flag only", func(t *testing.T) {
+		got, err := resolveFilePath(nil, "b.py")
+		require.NoError(t, err)
+		assert.Equal(t, "b.py", got)
+	})
+
+	t.Run("both supplied", func(t *testing.T) {
+		_, err := resolveFilePath([]string{"a.py"}, "b.py")
+		require.Error(t, err)
+		assert.Contains(t, err.Error(), "not both")
+	})
+
+	t.Run("neither supplied", func(t *testing.T) {
+		_, err := resolveFilePath(nil, "")
+		require.Error(t, err)
+		assert.Contains(t, err.Error(), "required")
+	})
 }
 
 func TestCmd_RejectsInvalidOutput(t *testing.T) {
@@ -141,7 +199,7 @@ func TestCmd_RejectsInvalidMode(t *testing.T) {
 func TestCmd_HasExpectedFlags(t *testing.T) {
 	cmd := Cmd()
 
-	for _, name := range []string{"description", "mode", "output"} {
+	for _, name := range []string{"description", "mode", "output", "from-file"} {
 		flag := cmd.Flags().Lookup(name)
 		assert.NotNilf(t, flag, "expected --%s flag to be registered", name)
 	}

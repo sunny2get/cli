@@ -16,6 +16,7 @@ package create
 
 import (
 	"encoding/json"
+	"errors"
 	"fmt"
 	"strconv"
 	"strings"
@@ -32,21 +33,26 @@ func Cmd() *cobra.Command {
 		description  string
 		mode         string
 		outputFormat string
+		fromFile     string
 	)
 
 	cmd := &cobra.Command{
-		Use:   "create <file>",
+		Use:   "create [<file>]",
 		Short: "Upload a Python file to create a pipeline.",
 		Long: `Upload a Python file containing a Covalent lattice to register a new pipeline.
 
 The lattice name is extracted from the file and used as the pipeline name.
 By default, output is human-readable. Use --output json for machine-parseable output.
 
+The path to the Python file can be supplied either as a positional argument
+or via the --from-file=<path> flag. Exactly one of the two must be provided.
+
 Example:
   dr pipelines create ./my_pipeline.py
+  dr pipelines create --from-file=./my_pipeline.py
   dr pipelines create ./my_pipeline.py --description "First draft" --mode draft
-  dr pipelines create ./my_pipeline.py --output json`,
-		Args:    cobra.ExactArgs(1),
+  dr pipelines create --from-file=./my_pipeline.py --output json`,
+		Args:    cobra.MaximumNArgs(1),
 		PreRunE: auth.EnsureAuthenticatedE,
 		RunE: func(_ *cobra.Command, args []string) error {
 			if outputFormat != "" && outputFormat != "json" {
@@ -57,7 +63,12 @@ Example:
 				return fmt.Errorf("invalid mode: %s (supported: draft, locked)", mode)
 			}
 
-			result, err := pipelines.CreatePipeline(args[0], description, mode)
+			filePath, err := resolveFilePath(args, fromFile)
+			if err != nil {
+				return err
+			}
+
+			result, err := pipelines.CreatePipeline(filePath, description, mode)
 			if err != nil {
 				return err
 			}
@@ -75,8 +86,29 @@ Example:
 	cmd.Flags().StringVar(&description, "description", "", "Optional description for the pipeline")
 	cmd.Flags().StringVar(&mode, "mode", "", "Pipeline mode: draft (default) or locked")
 	cmd.Flags().StringVar(&outputFormat, "output", "", "Output format (json)")
+	cmd.Flags().StringVar(&fromFile, "from-file", "", "Path to the Python file to upload, e.g. --from-file=./my_pipeline.py (alternative to the positional argument)")
 
 	return cmd
+}
+
+// resolveFilePath returns the file path supplied either positionally or via
+// --from-file. Exactly one of the two must be provided.
+func resolveFilePath(args []string, fromFile string) (string, error) {
+	positional := ""
+	if len(args) > 0 {
+		positional = args[0]
+	}
+
+	switch {
+	case positional != "" && fromFile != "":
+		return "", errors.New("specify the file either as a positional argument or via --from-file, not both")
+	case positional != "":
+		return positional, nil
+	case fromFile != "":
+		return fromFile, nil
+	default:
+		return "", errors.New("a file path is required (positional argument or --from-file)")
+	}
 }
 
 func printCreateJSON(result pipelines.CreateResponse) error {

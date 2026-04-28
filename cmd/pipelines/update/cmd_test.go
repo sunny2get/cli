@@ -102,14 +102,39 @@ func TestPrintUpdateHuman_NoElectrons(t *testing.T) {
 	assert.Contains(t, output, "Electrons: \u2014")
 }
 
-func TestCmd_RequiresTwoArgs(t *testing.T) {
+func TestCmd_RequiresPipelineID(t *testing.T) {
 	cmd := Cmd()
-	cmd.SetArgs([]string{"only-one"})
+	cmd.SetArgs([]string{})
 	cmd.SetOut(io.Discard)
 	cmd.SetErr(io.Discard)
+	cmd.PreRunE = nil
 
 	err := cmd.Execute()
 	require.Error(t, err)
+}
+
+func TestCmd_RequiresFilePath(t *testing.T) {
+	cmd := Cmd()
+	cmd.SetArgs([]string{"some-id"})
+	cmd.SetOut(io.Discard)
+	cmd.SetErr(io.Discard)
+	cmd.PreRunE = nil
+
+	err := cmd.Execute()
+	require.Error(t, err)
+	assert.Contains(t, err.Error(), "a file path is required")
+}
+
+func TestCmd_RejectsBothPositionalAndFromFile(t *testing.T) {
+	cmd := Cmd()
+	cmd.SetArgs([]string{"some-id", "a.py", "--from-file=b.py"})
+	cmd.SetOut(io.Discard)
+	cmd.SetErr(io.Discard)
+	cmd.PreRunE = nil
+
+	err := cmd.Execute()
+	require.Error(t, err)
+	assert.Contains(t, err.Error(), "not both")
 }
 
 func TestCmd_RejectsInvalidOutput(t *testing.T) {
@@ -124,7 +149,54 @@ func TestCmd_RejectsInvalidOutput(t *testing.T) {
 	assert.Contains(t, err.Error(), "invalid output format")
 }
 
-func TestCmd_HasOutputFlag(t *testing.T) {
+func TestCmd_HasExpectedFlags(t *testing.T) {
 	cmd := Cmd()
-	assert.NotNil(t, cmd.Flags().Lookup("output"))
+
+	for _, name := range []string{"output", "from-file"} {
+		flag := cmd.Flags().Lookup(name)
+		assert.NotNilf(t, flag, "expected --%s flag to be registered", name)
+	}
+}
+
+// TestCmd_FromFileEqualsSyntax ensures the documented --from-file=<path>
+// form parses correctly (cobra accepts both `--from-file value` and
+// `--from-file=value`; we exercise the equals form here).
+func TestCmd_FromFileEqualsSyntax(t *testing.T) {
+	cmd := Cmd()
+	cmd.SetOut(io.Discard)
+	cmd.SetErr(io.Discard)
+	cmd.PreRunE = nil
+
+	err := cmd.ParseFlags([]string{"--from-file=./my_pipeline.py"})
+	require.NoError(t, err)
+
+	flag := cmd.Flags().Lookup("from-file")
+	require.NotNil(t, flag)
+	assert.Equal(t, "./my_pipeline.py", flag.Value.String())
+}
+
+func TestResolveFilePath(t *testing.T) {
+	t.Run("positional only", func(t *testing.T) {
+		got, err := resolveFilePath([]string{"a.py"}, "")
+		require.NoError(t, err)
+		assert.Equal(t, "a.py", got)
+	})
+
+	t.Run("flag only", func(t *testing.T) {
+		got, err := resolveFilePath(nil, "b.py")
+		require.NoError(t, err)
+		assert.Equal(t, "b.py", got)
+	})
+
+	t.Run("both supplied", func(t *testing.T) {
+		_, err := resolveFilePath([]string{"a.py"}, "b.py")
+		require.Error(t, err)
+		assert.Contains(t, err.Error(), "not both")
+	})
+
+	t.Run("neither supplied", func(t *testing.T) {
+		_, err := resolveFilePath(nil, "")
+		require.Error(t, err)
+		assert.Contains(t, err.Error(), "required")
+	})
 }
