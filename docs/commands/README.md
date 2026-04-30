@@ -41,6 +41,7 @@ These flags are available for all commands:
 | [`dotenv`](dotenv.md)   | Manage environment variables.                       |
 | [`self`](self.md)       | CLI utility commands (update, version, completion, plugin). |
 | [`plugin`](plugins.md)  | Inspect and manage CLI plugins.                     |
+| [`pipelines`](pipelines.md) | Manage pipelines via the pipelines API (feature-gated). |
 | [`dependencies`](dependencies.md) | Check and install template dependencies (advanced). |
 
 ### Command tree
@@ -74,6 +75,35 @@ dr
 │   ├── install        Install a plugin
 │   ├── uninstall      Uninstall a plugin
 │   └── update         Update plugins
+├── pipelines          Pipelines API management (feature-gated)
+│   ├── create         Upload a Python file to create a pipeline
+│   ├── list           List pipelines
+│   ├── get            Display pipeline details and versions
+│   ├── update         Re-upload a Python file to update a draft pipeline
+│   ├── delete         Delete a pipeline and all of its versions
+│   ├── lock           Promote a draft pipeline to locked mode
+│   ├── version        Inspect pipeline versions
+│   │   ├── list       List versions of a pipeline
+│   │   └── get        Display details of a single pipeline version
+│   ├── graph          Display the lattice/electron DAG of a pipeline
+│   ├── input          Manage pipeline input payloads
+│   │   ├── create     Register a JSON payload on a pipeline
+│   │   ├── list       List inputs for a pipeline (draft or locked scope)
+│   │   ├── get        Display a single input
+│   │   ├── update     Update a draft input's payload
+│   │   └── delete     Delete an input
+│   ├── dispatch       Trigger and inspect pipeline executions
+│   │   ├── create     Trigger a dispatch from an input
+│   │   ├── list       List dispatches for a pipeline
+│   │   ├── get        Display a single dispatch
+│   │   ├── status     Lightweight dispatch status (for polling)
+│   │   └── cancel     Cancel a running dispatch
+│   └── schedule       Manage recurring (cron) dispatches (locked-only)
+│       ├── create     Register a recurring schedule on a locked version
+│       ├── list       List schedules for a locked version
+│       ├── get        Display a single schedule
+│       ├── update     Change cron expression / timezone
+│       └── delete     Delete a schedule
 └── self               CLI utility commands
     ├── completion     Shell completion
     │   ├── install    Install completions interactively
@@ -234,6 +264,19 @@ For detailed documentation on each command, see:
   - `install`&mdash;install missing or out-of-date tools; supports `--yes`/`-y` and `DATAROBOT_CLI_NON_INTERACTIVE` for non-interactive use.
 
 - **[plugin](plugins.md)**&mdash;inspect and manage installed CLI plugins (alias: `plugins`).
+
+- **[pipelines](pipelines.md)**&mdash;manage AI/ML pipelines orchestrated by Covalent (feature-gated behind `DATAROBOT_CLI_FEATURE_PIPELINES=true`). See the [pipelines reference](pipelines-reference.md) for an exhaustive endpoint mapping.
+  - `create`&mdash;upload a Python file to register a new pipeline.
+  - `list`&mdash;list pipelines with mode filtering and pagination.
+  - `get`&mdash;display full details of a pipeline including all versions.
+  - `update`&mdash;re-upload a Python file to append a new version to a draft pipeline.
+  - `delete`&mdash;remove a pipeline and all of its versions.
+  - `lock`&mdash;promote a draft pipeline to locked mode.
+  - `version`&mdash;`list` / `get` to inspect pipeline versions.
+  - `graph`&mdash;display the lattice/electron DAG (draft or locked).
+  - `input`&mdash;`create`/`list`/`get`/`update`/`delete` JSON payloads used by dispatches.
+  - `dispatch`&mdash;`create`/`list`/`get`/`status`/`cancel` pipeline executions.
+  - `schedule`&mdash;`create`/`list`/`get`/`update`/`delete` recurring (cron) dispatches on locked versions.
 
 ## Getting help
 

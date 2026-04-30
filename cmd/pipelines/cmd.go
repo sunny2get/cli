@@ -16,9 +16,16 @@ package pipelines
 
 import (
 	"github.com/datarobot/cli/cmd/pipelines/create"
+	"github.com/datarobot/cli/cmd/pipelines/del"
+	"github.com/datarobot/cli/cmd/pipelines/dispatch"
 	"github.com/datarobot/cli/cmd/pipelines/get"
+	"github.com/datarobot/cli/cmd/pipelines/graph"
+	"github.com/datarobot/cli/cmd/pipelines/input"
 	"github.com/datarobot/cli/cmd/pipelines/list"
+	"github.com/datarobot/cli/cmd/pipelines/lock"
+	"github.com/datarobot/cli/cmd/pipelines/schedule"
 	"github.com/datarobot/cli/cmd/pipelines/update"
+	"github.com/datarobot/cli/cmd/pipelines/version"
 	"github.com/datarobot/cli/internal/features"
 	"github.com/spf13/cobra"
 )
@@ -31,7 +38,8 @@ func Cmd() *cobra.Command {
 		Long: `Manage AI/ML pipelines orchestrated by Covalent.
 
 Create, list, inspect, and update pipelines registered with the
-DataRobot pipelines service.`,
+DataRobot pipelines service. Sub-commands are also available for managing
+input payloads, dispatches, and recurring schedules.`,
 	}
 
 	features.SetGate(cmd, "pipelines")
@@ -41,6 +49,13 @@ DataRobot pipelines service.`,
 		get.Cmd(),
 		list.Cmd(),
 		update.Cmd(),
+		del.Cmd(),
+		lock.Cmd(),
+		version.Cmd(),
+		graph.Cmd(),
+		input.Cmd(),
+		dispatch.Cmd(),
+		schedule.Cmd(),
 	)
 
 	return cmd

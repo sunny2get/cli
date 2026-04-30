@@ -191,6 +191,37 @@ func UpdatePipeline(pipelineID, filePath string) (*CreateResponse, error) {
 	return &result, nil
 }
 
+// DeletePipeline issues DELETE /api/v2/pipelines/{pipeline_id}. The API
+// returns 204 on success.
+func DeletePipeline(pipelineID string) error {
+	endpoint, err := config.GetEndpointURL("/api/v2/pipelines/" + pipelineID)
+	if err != nil {
+		return err
+	}
+
+	return doDelete(endpoint, "delete pipeline")
+}
+
+// LockPipeline issues PATCH /api/v2/pipelines/{pipeline_id}/mode to
+// promote a draft pipeline into the locked mode. The response mirrors a
+// create/update payload, with `mode` set to "locked" and `version`
+// pointing at the locked version.
+func LockPipeline(pipelineID string) (*CreateResponse, error) {
+	endpoint, err := config.GetEndpointURL("/api/v2/pipelines/" + pipelineID + "/mode")
+	if err != nil {
+		return nil, err
+	}
+
+	var result CreateResponse
+
+	err = doJSON(http.MethodPatch, endpoint, nil, "lock pipeline", &result)
+	if err != nil {
+		return nil, err
+	}
+
+	return &result, nil
+}
+
 // doMultipart performs a multipart/form-data request with a single "file" upload
 // and optional form fields, decoding the JSON response into out.
 func doMultipart(method, endpoint, filePath string, fields map[string]string, info string, out any) error {
