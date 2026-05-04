@@ -18,6 +18,7 @@ import (
 	"github.com/datarobot/cli/cmd/pipelines/create"
 	"github.com/datarobot/cli/cmd/pipelines/del"
 	"github.com/datarobot/cli/cmd/pipelines/dispatch"
+	"github.com/datarobot/cli/cmd/pipelines/environment"
 	"github.com/datarobot/cli/cmd/pipelines/get"
 	"github.com/datarobot/cli/cmd/pipelines/graph"
 	"github.com/datarobot/cli/cmd/pipelines/input"
@@ -56,6 +57,7 @@ input payloads, dispatches, and recurring schedules.`,
 		input.Cmd(),
 		dispatch.Cmd(),
 		schedule.Cmd(),
+		environment.Cmd(),
 	)
 
 	return cmd

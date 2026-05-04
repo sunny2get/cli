@@ -98,12 +98,19 @@ dr
 │   │   ├── get        Display a single dispatch
 │   │   ├── status     Lightweight dispatch status (for polling)
 │   │   └── cancel     Cancel a running dispatch
-│   └── schedule       Manage recurring (cron) dispatches (locked-only)
-│       ├── create     Register a recurring schedule on a locked version
-│       ├── list       List schedules for a locked version
-│       ├── get        Display a single schedule
-│       ├── update     Change cron expression / timezone
-│       └── delete     Delete a schedule
+│   ├── schedule       Manage recurring (cron) dispatches (locked-only)
+│   │   ├── create     Register a recurring schedule on a locked version
+│   │   ├── list       List schedules for a locked version
+│   │   ├── get        Display a single schedule
+│   │   ├── update     Change cron expression / timezone
+│   │   └── delete     Delete a schedule
+│   └── environment    Manage pipeline execution environments (pip packages)
+│       ├── create     Register a new environment with an initial version
+│       ├── list       List environments
+│       ├── update     Add packages by creating a new version
+│       ├── delete     Soft-delete the latest version (cascades parent)
+│       └── version    Manage individual environment versions
+│           └── delete Delete a specific environment version
 └── self               CLI utility commands
     ├── completion     Shell completion
     │   ├── install    Install completions interactively
@@ -277,6 +284,7 @@ For detailed documentation on each command, see:
   - `input`&mdash;`create`/`list`/`get`/`update`/`delete` JSON payloads used by dispatches.
   - `dispatch`&mdash;`create`/`list`/`get`/`status`/`cancel` pipeline executions.
   - `schedule`&mdash;`create`/`list`/`get`/`update`/`delete` recurring (cron) dispatches on locked versions.
+  - `environment`&mdash;`create`/`list`/`update`/`delete` named, immutable-versioned pip-package execution environments; `environment version delete` removes a specific older version.
 
 ## Getting help
 

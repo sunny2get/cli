@@ -89,6 +89,30 @@ Schedules are **locked-only** — every verb requires both `--pipeline` and
 
 ---
 
+## Execution environments (`dr pipelines environment …`)
+
+Pipeline execution environments are named, immutable-versioned bags of
+pip packages. They live at the top of the pipelines namespace (not
+nested under a specific pipeline) and are created/updated independently.
+Each `update` appends a new version; older versions can be deleted
+individually.
+
+| Command | API endpoint | Usage | Inputs |
+|---|---|---|---|
+| `dr pipelines environment create` | `POST /pipelines/environments` | `dr pipelines environment create --name ml-base --package numpy --package pandas==2.0` <br> `dr pipelines environment create --name ml-base --package "numpy,pandas==2.0" --description "training base" --output json` | **Flags:** `--name <name>` (required), `--description <text>`, `--package <spec>` (required, repeatable, also accepts comma-separated values), `--output json`. <br> **Body sent to API:** `{"name": "...", "description"?: "...", "packages": ["..."]}`. |
+| `dr pipelines environment list` | `GET /pipelines/environments` | `dr pipelines environment list` <br> `dr pipelines environment list --offset 50 --limit 10 --output json` | **Flags:** `--offset <n>`, `--limit <n>`, `--output json`. |
+| `dr pipelines environment update` | `PATCH /pipelines/environments/{environment_id}` | `dr pipelines environment update <environment-id> --package scikit-learn` <br> `dr pipelines environment update <environment-id> --package "scikit-learn,torch" --output json` | **Positional:** `<environment-id>` (required). <br> **Flags:** `--package <spec>` (required, repeatable, also accepts comma-separated values), `--output json`. <br> **Body sent to API:** `{"packages": ["..."]}`. |
+| `dr pipelines environment delete` | `DELETE /pipelines/environments/{environment_id}` | `dr pipelines environment delete <environment-id>` | **Positional:** `<environment-id>` (required). |
+| `dr pipelines environment version delete` | `DELETE /pipelines/environments/{environment_id}/versions/{version_id}` | `dr pipelines environment version delete --environment <id> 2` | **Positional:** `<version>` (positive integer, required). <br> **Flags:** `--environment <id>` (required). |
+
+> [!NOTE]
+> The pipelines-api currently does not expose `GET` endpoints for a
+> single environment or for individual versions, so the CLI does not
+> ship `environment get` or `environment version get`. The full version
+> history is only returned in the `create` and `update` responses.
+
+---
+
 ## Shared flag semantics
 
 ### `--scope` / `--version` (inputs, dispatches, graph)
@@ -176,3 +200,8 @@ exercising a local API stub that doesn't implement `/version/`.
 | `GET /pipelines/{id}/versions/{ver}/schedules/{schedule_id}` | `dr pipelines schedule get` |
 | `PATCH /pipelines/{id}/versions/{ver}/schedules/{schedule_id}` | `dr pipelines schedule update` |
 | `DELETE /pipelines/{id}/versions/{ver}/schedules/{schedule_id}` | `dr pipelines schedule delete` |
+| `POST /pipelines/environments` | `dr pipelines environment create` |
+| `GET /pipelines/environments` | `dr pipelines environment list` |
+| `PATCH /pipelines/environments/{environment_id}` | `dr pipelines environment update` |
+| `DELETE /pipelines/environments/{environment_id}` | `dr pipelines environment delete` |
+| `DELETE /pipelines/environments/{environment_id}/versions/{version_id}` | `dr pipelines environment version delete` |

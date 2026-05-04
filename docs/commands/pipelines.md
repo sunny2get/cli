@@ -50,7 +50,9 @@ top-level `dr pipelines` subcommand operates on one of four resources:
 - pipeline **versions** (list, get, graph),
 - pipeline **inputs** — JSON payloads supplied to a dispatch,
 - pipeline **dispatches** — concrete executions on Covalent,
-- pipeline **schedules** — recurring dispatches on a cron expression.
+- pipeline **schedules** — recurring dispatches on a cron expression,
+- pipeline **environments** — named, immutable-versioned bags of pip
+  packages that pipelines can be built against.
 
 Versions are created automatically:
 
@@ -85,6 +87,7 @@ to a frozen version) — selected via the shared `--scope` and
 | `dr pipelines input …`       | `…/inputs` and `…/inputs/{input_id}`             | Manage JSON payloads for dispatches.                   |
 | `dr pipelines dispatch …`    | `…/dispatches` and `…/dispatches/{dispatch_id}`  | Trigger, inspect, and cancel runs.                     |
 | `dr pipelines schedule …`    | `…/versions/{ver}/schedules`                     | Manage recurring (cron) dispatches on locked versions. |
+| `dr pipelines environment …` | `/api/v2/pipelines/environments[/...]`           | Manage named, versioned pip-package execution environments. |
 
 ## Subcommands
 
@@ -372,6 +375,43 @@ dr pipelines schedule delete --pipeline <id> --version=N <schedule-id>
 ```
 
 `schedule update` requires at least one of `--cron` or `--timezone`.
+
+### `environment`
+
+Manage pipeline execution environments — named, immutable-versioned
+bags of pip packages that pipelines can be built against. Environments
+live at the top of the pipelines namespace (not nested under a specific
+pipeline) and have their own lifecycle.
+
+```bash
+dr pipelines environment create --name <name> --package <spec> [--package <spec>] ...
+dr pipelines environment list   [--offset N] [--limit N] [--output json]
+dr pipelines environment update <environment-id> --package <spec> [...]
+dr pipelines environment delete <environment-id>
+dr pipelines environment version delete --environment <id> <version>
+```
+
+`create` registers a new environment with an initial v1 containing the
+supplied pip packages; the returned record reports the build status of
+that first version. `update` adds packages to an existing environment
+by creating a new immutable version (older versions are unchanged).
+`delete` soft-deletes the most recent active version (and cascades the
+parent if no versions remain). `version delete` targets a specific
+older version without touching the parent.
+
+`--package` is repeatable and also accepts comma-separated values:
+
+```bash
+dr pipelines environment create --name ml-base \
+    --package numpy --package pandas==2.0
+dr pipelines environment create --name ml-base \
+    --package "numpy,pandas==2.0,scikit-learn"
+```
+
+> [!NOTE]
+> The pipelines-api currently does not surface `GET` endpoints for a
+> single environment or for the version list. The full version history
+> is only returned in the `create` and `update` responses.
 
 ## Shared flags
 
