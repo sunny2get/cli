@@ -49,13 +49,13 @@ func captureStdout(t *testing.T, fn func()) string {
 
 func sampleCreateResponse() pipelines.CreateResponse {
 	return pipelines.CreateResponse{
-		PipelineID:    "6658f441-a8f5-4f21-b4d8-6cccf4c94c5b",
-		Name:          "confluence_to_vdb",
-		Version:       1,
-		Status:        "READY",
-		Mode:          "draft",
-		ElectronNames: []string{"create_vector_database", "ingest_confluence_files"},
-		CreatedAt:     time.Date(2026, 4, 28, 11, 42, 28, 0, time.UTC),
+		PipelineID: "6658f441-a8f5-4f21-b4d8-6cccf4c94c5b",
+		Name:       "confluence_to_vdb",
+		Version:    1,
+		Status:     "READY",
+		Mode:       "draft",
+		TaskNames:  []string{"create_vector_database", "ingest_confluence_files"},
+		CreatedAt:  time.Date(2026, 4, 28, 11, 42, 28, 0, time.UTC),
 	}
 }
 
@@ -78,7 +78,7 @@ func TestPrintCreateJSON(t *testing.T) {
 	assert.EqualValues(t, 1, parsed["version"])
 }
 
-func TestPrintCreateHuman_WithElectrons(t *testing.T) {
+func TestPrintCreateHuman_WithTasks(t *testing.T) {
 	resp := sampleCreateResponse()
 
 	output := captureStdout(t, func() {
@@ -87,21 +87,21 @@ func TestPrintCreateHuman_WithElectrons(t *testing.T) {
 
 	assert.Contains(t, output, resp.PipelineID)
 	assert.Contains(t, output, "confluence_to_vdb")
-	assert.Contains(t, output, "Version:   1")
-	assert.Contains(t, output, "Status:    READY")
-	assert.Contains(t, output, "Mode:      draft")
+	assert.Contains(t, output, "Version:      1")
+	assert.Contains(t, output, "Status:       READY")
+	assert.Contains(t, output, "Mode:         draft")
 	assert.Contains(t, output, "create_vector_database, ingest_confluence_files")
 }
 
-func TestPrintCreateHuman_NoElectrons(t *testing.T) {
+func TestPrintCreateHuman_NoTasks(t *testing.T) {
 	resp := sampleCreateResponse()
-	resp.ElectronNames = nil
+	resp.TaskNames = nil
 
 	output := captureStdout(t, func() {
 		printCreateHuman(resp)
 	})
 
-	assert.Contains(t, output, "Electrons: \u2014")
+	assert.Contains(t, output, "Tasks:        \u2014")
 }
 
 func TestCmd_RequiresFilePath(t *testing.T) {

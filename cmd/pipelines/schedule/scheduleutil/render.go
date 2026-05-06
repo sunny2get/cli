@@ -44,7 +44,7 @@ func PrintScheduleJSON(s pipelines.Schedule) error {
 // PrintScheduleHuman renders a single schedule in human-friendly form.
 func PrintScheduleHuman(s pipelines.Schedule) {
 	fmt.Println(tui.BaseTextStyle.Render("Schedule ID:  " + s.ScheduleID))
-	fmt.Println(tui.BaseTextStyle.Render("Pipeline:     " + s.PipelineID))
+	fmt.Println(tui.BaseTextStyle.Render("Pipeline ID:  " + s.PipelineID))
 	fmt.Println(tui.BaseTextStyle.Render("Version:      v" + strconv.Itoa(s.Version)))
 	fmt.Println(tui.BaseTextStyle.Render("Cron:         " + s.CronExpression))
 	fmt.Println(tui.BaseTextStyle.Render("Timezone:     " + s.Timezone))

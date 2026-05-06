@@ -85,7 +85,7 @@ dr
 │   ├── version        Inspect pipeline versions
 │   │   ├── list       List versions of a pipeline
 │   │   └── get        Display details of a single pipeline version
-│   ├── graph          Display the lattice/electron DAG of a pipeline
+│   ├── graph          Display the pipeline/task DAG of a pipeline
 │   ├── input          Manage pipeline input payloads
 │   │   ├── create     Register a JSON payload on a pipeline
 │   │   ├── list       List inputs for a pipeline (draft or locked scope)
@@ -280,7 +280,7 @@ For detailed documentation on each command, see:
   - `delete`&mdash;remove a pipeline and all of its versions.
   - `lock`&mdash;promote a draft pipeline to locked mode.
   - `version`&mdash;`list` / `get` to inspect pipeline versions.
-  - `graph`&mdash;display the lattice/electron DAG (draft or locked).
+  - `graph`&mdash;display the pipeline/task DAG (draft or locked).
   - `input`&mdash;`create`/`list`/`get`/`update`/`delete` JSON payloads used by dispatches.
   - `dispatch`&mdash;`create`/`list`/`get`/`status`/`cancel` pipeline executions.
   - `schedule`&mdash;`create`/`list`/`get`/`update`/`delete` recurring (cron) dispatches on locked versions.

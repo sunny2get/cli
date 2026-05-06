@@ -51,8 +51,8 @@ func sampleVersion() pipelines.PipelineVersion {
 	return pipelines.PipelineVersion{
 		Version:       2,
 		Status:        "READY",
-		LatticeName:   "wf",
-		ElectronNames: []string{"e1", "e2"},
+		PipelineName:  "wf",
+		TaskNames:     []string{"e1", "e2"},
 		PythonVersion: "3.12",
 		CreatedAt:     time.Date(2026, 4, 29, 10, 0, 0, 0, time.UTC),
 	}
@@ -74,21 +74,21 @@ func TestPrintVersionJSON(t *testing.T) {
 func TestPrintVersionHuman_Full(t *testing.T) {
 	output := captureStdout(t, func() { PrintVersionHuman(sampleVersion()) })
 	assert.Contains(t, output, "Version:        v2")
-	assert.Contains(t, output, "Lattice:        wf")
+	assert.Contains(t, output, "Pipeline:       wf")
 	assert.Contains(t, output, "Status:         READY")
 	assert.Contains(t, output, "Python Version: 3.12")
-	assert.Contains(t, output, "Electrons:      e1, e2")
+	assert.Contains(t, output, "Tasks:          e1, e2")
 	assert.Contains(t, output, "Created:        2026-04-29T10:00:00Z")
 }
 
 func TestPrintVersionHuman_FillsDefaultsForMissing(t *testing.T) {
 	v := sampleVersion()
-	v.ElectronNames = nil
+	v.TaskNames = nil
 	v.PythonVersion = ""
 
 	output := captureStdout(t, func() { PrintVersionHuman(v) })
 	assert.Contains(t, output, "Python Version: \u2014")
-	assert.Contains(t, output, "Electrons:      \u2014")
+	assert.Contains(t, output, "Tasks:          \u2014")
 }
 
 func TestPrintVersionHuman_ShowsErrorDetail(t *testing.T) {

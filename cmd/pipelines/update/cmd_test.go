@@ -49,13 +49,13 @@ func captureStdout(t *testing.T, fn func()) string {
 
 func sampleUpdateResponse() pipelines.CreateResponse {
 	return pipelines.CreateResponse{
-		PipelineID:    "6658f441-a8f5-4f21-b4d8-6cccf4c94c5b",
-		Name:          "confluence_to_vdb",
-		Version:       2,
-		Status:        "READY",
-		Mode:          "draft",
-		ElectronNames: []string{"create_vector_database"},
-		CreatedAt:     time.Date(2026, 4, 28, 12, 24, 54, 0, time.UTC),
+		PipelineID: "6658f441-a8f5-4f21-b4d8-6cccf4c94c5b",
+		Name:       "confluence_to_vdb",
+		Version:    2,
+		Status:     "READY",
+		Mode:       "draft",
+		TaskNames:  []string{"create_vector_database"},
+		CreatedAt:  time.Date(2026, 4, 28, 12, 24, 54, 0, time.UTC),
 	}
 }
 
@@ -76,30 +76,30 @@ func TestPrintUpdateJSON(t *testing.T) {
 	assert.Equal(t, "READY", parsed["status"])
 }
 
-func TestPrintUpdateHuman_WithElectrons(t *testing.T) {
+func TestPrintUpdateHuman_WithTasks(t *testing.T) {
 	resp := sampleUpdateResponse()
 
 	output := captureStdout(t, func() {
 		printUpdateHuman(resp)
 	})
 
-	assert.Contains(t, output, "Pipeline:  "+resp.PipelineID)
-	assert.Contains(t, output, "Name:      confluence_to_vdb")
-	assert.Contains(t, output, "Version:   2")
-	assert.Contains(t, output, "Status:    READY")
-	assert.Contains(t, output, "Mode:      draft")
+	assert.Contains(t, output, "Pipeline ID:  "+resp.PipelineID)
+	assert.Contains(t, output, "Name:         confluence_to_vdb")
+	assert.Contains(t, output, "Version:      2")
+	assert.Contains(t, output, "Status:       READY")
+	assert.Contains(t, output, "Mode:         draft")
 	assert.Contains(t, output, "create_vector_database")
 }
 
-func TestPrintUpdateHuman_NoElectrons(t *testing.T) {
+func TestPrintUpdateHuman_NoTasks(t *testing.T) {
 	resp := sampleUpdateResponse()
-	resp.ElectronNames = nil
+	resp.TaskNames = nil
 
 	output := captureStdout(t, func() {
 		printUpdateHuman(resp)
 	})
 
-	assert.Contains(t, output, "Electrons: \u2014")
+	assert.Contains(t, output, "Tasks:        \u2014")
 }
 
 func TestCmd_RequiresPipelineID(t *testing.T) {

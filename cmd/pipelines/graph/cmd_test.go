@@ -51,13 +51,13 @@ func captureStdout(t *testing.T, fn func()) string {
 
 func sampleGraph() pipelines.Graph {
 	return pipelines.Graph{
-		Lattice: pipelines.GraphLattice{ID: "lattice-0", Name: "wf"},
+		Pipeline: pipelines.GraphPipeline{ID: "pipeline-0", Name: "wf"},
 		Nodes: []pipelines.GraphNode{
-			{ID: "lattice-0", Type: "lattice", Name: "wf"},
-			{ID: "electron-0", Type: "electron", Name: "step1"},
+			{ID: "pipeline-0", Type: "lattice", Name: "wf"},
+			{ID: "task-0", Type: "electron", Name: "step1"},
 		},
 		Edges: []pipelines.GraphEdge{
-			{Source: "lattice-0", Target: "electron-0"},
+			{Source: "pipeline-0", Target: "task-0"},
 		},
 	}
 }
@@ -71,10 +71,11 @@ func TestPrintGraphJSON(t *testing.T) {
 
 	require.NoError(t, json.Unmarshal([]byte(output), &parsed))
 
-	lattice, ok := parsed["lattice"].(map[string]any)
+	// JSON tag remains `lattice` until the API renames the wire field.
+	pipeline, ok := parsed["lattice"].(map[string]any)
 	require.True(t, ok)
-	assert.Equal(t, "lattice-0", lattice["id"])
-	assert.Equal(t, "wf", lattice["name"])
+	assert.Equal(t, "pipeline-0", pipeline["id"])
+	assert.Equal(t, "wf", pipeline["name"])
 }
 
 func TestPrintGraphHuman(t *testing.T) {
@@ -82,16 +83,16 @@ func TestPrintGraphHuman(t *testing.T) {
 		printGraphHuman(sampleGraph())
 	})
 
-	assert.Contains(t, output, "Lattice:  wf")
-	assert.Contains(t, output, "ID:       lattice-0")
+	assert.Contains(t, output, "Pipeline: wf")
+	assert.Contains(t, output, "ID:       pipeline-0")
 	assert.Contains(t, output, "Nodes (2):")
 	assert.Contains(t, output, "Edges (1):")
-	assert.Contains(t, output, "electron-0")
+	assert.Contains(t, output, "task-0")
 }
 
 func TestPrintGraphHuman_EmptyGraph(t *testing.T) {
 	output := captureStdout(t, func() {
-		printGraphHuman(pipelines.Graph{Lattice: pipelines.GraphLattice{Name: "empty", ID: "x"}})
+		printGraphHuman(pipelines.Graph{Pipeline: pipelines.GraphPipeline{Name: "empty", ID: "x"}})
 	})
 
 	assert.Contains(t, output, "No nodes")

@@ -123,12 +123,12 @@ func printGetHuman(pipeline pipelines.Pipeline) {
 
 	writer := tabwriter.NewWriter(os.Stdout, 0, 0, 2, ' ', 0)
 
-	fmt.Fprintln(writer, "  VERSION\tSTATUS\tPYTHON\tCREATED\tELECTRONS")
+	fmt.Fprintln(writer, "  VERSION\tSTATUS\tPYTHON\tCREATED\tTASKS")
 
 	for _, version := range pipeline.Versions {
-		electrons := "\u2014"
-		if len(version.ElectronNames) > 0 {
-			electrons = strings.Join(version.ElectronNames, ", ")
+		tasks := "\u2014"
+		if len(version.TaskNames) > 0 {
+			tasks = strings.Join(version.TaskNames, ", ")
 		}
 
 		python := version.PythonVersion
@@ -141,7 +141,7 @@ func printGetHuman(pipeline pipelines.Pipeline) {
 			version.Status,
 			python,
 			version.CreatedAt.UTC().Format(time.RFC3339),
-			electrons,
+			tasks,
 		)
 	}
 

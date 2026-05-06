@@ -39,9 +39,9 @@ func Cmd() *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "create [<file>]",
 		Short: "Upload a Python file to create a pipeline.",
-		Long: `Upload a Python file containing a Covalent lattice to register a new pipeline.
+		Long: `Upload a Python file containing a DataRobot pipeline (one or more tasks) to register a new pipeline.
 
-The lattice name is extracted from the file and used as the pipeline name.
+The pipeline name is extracted from the file and used as the pipeline's resource name.
 By default, output is human-readable. Use --output json for machine-parseable output.
 
 The path to the Python file can be supplied either as a positional argument
@@ -123,16 +123,16 @@ func printCreateJSON(result pipelines.CreateResponse) error {
 }
 
 func printCreateHuman(result pipelines.CreateResponse) {
-	electrons := "\u2014"
-	if len(result.ElectronNames) > 0 {
-		electrons = strings.Join(result.ElectronNames, ", ")
+	tasks := "\u2014"
+	if len(result.TaskNames) > 0 {
+		tasks = strings.Join(result.TaskNames, ", ")
 	}
 
-	fmt.Println(tui.BaseTextStyle.Render("Pipeline:  " + result.PipelineID))
-	fmt.Println(tui.BaseTextStyle.Render("Name:      " + result.Name))
-	fmt.Println(tui.BaseTextStyle.Render("Version:   " + strconv.Itoa(result.Version)))
-	fmt.Println(tui.BaseTextStyle.Render("Status:    " + result.Status))
-	fmt.Println(tui.BaseTextStyle.Render("Mode:      " + result.Mode))
-	fmt.Println(tui.BaseTextStyle.Render("Electrons: " + electrons))
-	fmt.Println(tui.DimStyle.Render("Created:   " + result.CreatedAt.UTC().Format(time.RFC3339)))
+	fmt.Println(tui.BaseTextStyle.Render("Pipeline ID:  " + result.PipelineID))
+	fmt.Println(tui.BaseTextStyle.Render("Name:         " + result.Name))
+	fmt.Println(tui.BaseTextStyle.Render("Version:      " + strconv.Itoa(result.Version)))
+	fmt.Println(tui.BaseTextStyle.Render("Status:       " + result.Status))
+	fmt.Println(tui.BaseTextStyle.Render("Mode:         " + result.Mode))
+	fmt.Println(tui.BaseTextStyle.Render("Tasks:        " + tasks))
+	fmt.Println(tui.DimStyle.Render("Created:      " + result.CreatedAt.UTC().Format(time.RFC3339)))
 }

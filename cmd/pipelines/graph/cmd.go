@@ -40,8 +40,8 @@ func Cmd() *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "graph",
 		Short: "Display the DAG of a pipeline",
-		Long: `Display the lattice/electron graph for a pipeline as either a JSON
-payload (for visualisation tooling) or a human-readable summary.
+		Long: `Display the pipeline/task graph (DAG) as either a JSON payload
+(for visualisation tooling) or a human-readable summary.
 
 Scope is selected from the --scope/--version flags:
   - no flags                   -> draft graph (latest version)
@@ -114,8 +114,8 @@ func printGraphJSON(g pipelines.Graph) error {
 }
 
 func printGraphHuman(g pipelines.Graph) {
-	fmt.Println(tui.BaseTextStyle.Render("Lattice:  " + g.Lattice.Name))
-	fmt.Println(tui.DimStyle.Render("ID:       " + g.Lattice.ID))
+	fmt.Println(tui.BaseTextStyle.Render("Pipeline: " + g.Pipeline.Name))
+	fmt.Println(tui.DimStyle.Render("ID:       " + g.Pipeline.ID))
 
 	if len(g.Nodes) == 0 {
 		fmt.Println(tui.DimStyle.Render("No nodes"))

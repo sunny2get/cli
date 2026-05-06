@@ -37,7 +37,7 @@ func Cmd() *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "get <version-id>",
 		Short: "Display details of a single pipeline version",
-		Long: `Display the lattice metadata for a single pipeline version.
+		Long: `Display the pipeline metadata for a single pipeline version.
 
 Example:
   dr pipelines version get --pipeline <id> 2

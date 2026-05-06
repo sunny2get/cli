@@ -49,13 +49,13 @@ func captureStdout(t *testing.T, fn func()) string {
 
 func sample() pipelines.CreateResponse {
 	return pipelines.CreateResponse{
-		PipelineID:    "abc",
-		Name:          "promo",
-		Version:       3,
-		Status:        "READY",
-		Mode:          "locked",
-		ElectronNames: []string{"e1", "e2"},
-		CreatedAt:     time.Date(2026, 4, 30, 10, 0, 0, 0, time.UTC),
+		PipelineID: "abc",
+		Name:       "promo",
+		Version:    3,
+		Status:     "READY",
+		Mode:       "locked",
+		TaskNames:  []string{"e1", "e2"},
+		CreatedAt:  time.Date(2026, 4, 30, 10, 0, 0, 0, time.UTC),
 	}
 }
 
@@ -77,21 +77,21 @@ func TestPrintLockHuman(t *testing.T) {
 		printLockHuman(sample())
 	})
 
-	assert.Contains(t, output, "Pipeline:  abc")
-	assert.Contains(t, output, "Mode:      locked")
-	assert.Contains(t, output, "Version:   v3")
-	assert.Contains(t, output, "Electrons: e1, e2")
+	assert.Contains(t, output, "Pipeline ID:  abc")
+	assert.Contains(t, output, "Mode:         locked")
+	assert.Contains(t, output, "Version:      v3")
+	assert.Contains(t, output, "Tasks:        e1, e2")
 }
 
-func TestPrintLockHuman_NoElectrons(t *testing.T) {
+func TestPrintLockHuman_NoTasks(t *testing.T) {
 	resp := sample()
-	resp.ElectronNames = nil
+	resp.TaskNames = nil
 
 	output := captureStdout(t, func() {
 		printLockHuman(resp)
 	})
 
-	assert.Contains(t, output, "Electrons: \u2014")
+	assert.Contains(t, output, "Tasks:        \u2014")
 }
 
 func TestCmd_RejectsInvalidOutput(t *testing.T) {

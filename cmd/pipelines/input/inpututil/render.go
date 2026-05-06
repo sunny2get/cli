@@ -51,7 +51,7 @@ func PrintInputHuman(input pipelines.Input) {
 	}
 
 	fmt.Println(tui.BaseTextStyle.Render("Input ID:    " + input.InputID))
-	fmt.Println(tui.BaseTextStyle.Render("Pipeline:    " + input.PipelineID))
+	fmt.Println(tui.BaseTextStyle.Render("Pipeline ID: " + input.PipelineID))
 	fmt.Println(tui.BaseTextStyle.Render("Scope:       " + scope))
 	fmt.Println(tui.BaseTextStyle.Render("Version:     " + versionDisplay))
 	fmt.Println(tui.BaseTextStyle.Render("State:       " + string(input.State)))

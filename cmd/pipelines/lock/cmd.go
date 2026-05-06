@@ -79,16 +79,16 @@ func printLockJSON(result pipelines.CreateResponse) error {
 }
 
 func printLockHuman(result pipelines.CreateResponse) {
-	electrons := "\u2014"
-	if len(result.ElectronNames) > 0 {
-		electrons = strings.Join(result.ElectronNames, ", ")
+	tasks := "\u2014"
+	if len(result.TaskNames) > 0 {
+		tasks = strings.Join(result.TaskNames, ", ")
 	}
 
-	fmt.Println(tui.BaseTextStyle.Render("Pipeline:  " + result.PipelineID))
-	fmt.Println(tui.BaseTextStyle.Render("Name:      " + result.Name))
-	fmt.Println(tui.BaseTextStyle.Render("Mode:      " + result.Mode))
-	fmt.Println(tui.BaseTextStyle.Render("Version:   v" + strconv.Itoa(result.Version)))
-	fmt.Println(tui.BaseTextStyle.Render("Status:    " + result.Status))
-	fmt.Println(tui.BaseTextStyle.Render("Electrons: " + electrons))
-	fmt.Println(tui.DimStyle.Render("Locked:    " + result.CreatedAt.UTC().Format(time.RFC3339)))
+	fmt.Println(tui.BaseTextStyle.Render("Pipeline ID:  " + result.PipelineID))
+	fmt.Println(tui.BaseTextStyle.Render("Name:         " + result.Name))
+	fmt.Println(tui.BaseTextStyle.Render("Mode:         " + result.Mode))
+	fmt.Println(tui.BaseTextStyle.Render("Version:      v" + strconv.Itoa(result.Version)))
+	fmt.Println(tui.BaseTextStyle.Render("Status:       " + result.Status))
+	fmt.Println(tui.BaseTextStyle.Render("Tasks:        " + tasks))
+	fmt.Println(tui.DimStyle.Render("Locked:       " + result.CreatedAt.UTC().Format(time.RFC3339)))
 }

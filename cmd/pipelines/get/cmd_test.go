@@ -62,15 +62,15 @@ func samplePipeline() pipelines.Pipeline {
 			{
 				Version:       1,
 				Status:        "READY",
-				LatticeName:   "confluence_to_vdb",
-				ElectronNames: []string{"create_vector_database", "ingest_confluence_files"},
+				PipelineName:  "confluence_to_vdb",
+				TaskNames:     []string{"create_vector_database", "ingest_confluence_files"},
 				PythonVersion: "3.12",
 				CreatedAt:     time.Date(2026, 4, 28, 11, 42, 28, 0, time.UTC),
 			},
 			{
 				Version:       2,
 				Status:        "FAILED",
-				LatticeName:   "confluence_to_vdb",
+				PipelineName:  "confluence_to_vdb",
 				PythonVersion: "3.12",
 				ErrorDetail:   "boom",
 				CreatedAt:     time.Date(2026, 4, 28, 12, 25, 11, 0, time.UTC),
@@ -116,7 +116,7 @@ func TestPrintGetHuman_RendersHeaderAndVersions(t *testing.T) {
 	assert.Contains(t, output, "STATUS")
 	assert.Contains(t, output, "PYTHON")
 	assert.Contains(t, output, "CREATED")
-	assert.Contains(t, output, "ELECTRONS")
+	assert.Contains(t, output, "TASKS")
 	assert.Contains(t, output, "v1")
 	assert.Contains(t, output, "v2")
 	assert.Contains(t, output, "create_vector_database, ingest_confluence_files")

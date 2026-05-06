@@ -84,7 +84,7 @@ func TestGetGraph_DraftURL(t *testing.T) {
 
 	got, err := GetGraph("p-1", ScopeDraft, nil)
 	require.NoError(t, err)
-	assert.Equal(t, "wf", got.Lattice.Name)
+	assert.Equal(t, "wf", got.Pipeline.Name)
 	require.Len(t, got.Nodes, 1)
 	assert.Equal(t, "lattice", got.Nodes[0].Type)
 }

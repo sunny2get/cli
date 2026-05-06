@@ -35,7 +35,9 @@ import (
 )
 
 // GraphNode mirrors a node entry in the JSON returned by the graph
-// endpoint. type is "lattice" or "electron".
+// endpoint. The wire-level type value is currently "lattice" or "electron";
+// in DataRobot terminology these correspond to "pipeline" and "task". The
+// JSON tag is preserved as-is until the server renames the field.
 type GraphNode struct {
 	ID   string `json:"id"`
 	Type string `json:"type"`
@@ -49,8 +51,10 @@ type GraphEdge struct {
 	Target string `json:"target"`
 }
 
-// GraphLattice mirrors the "lattice" header entry of the graph payload.
-type GraphLattice struct {
+// GraphPipeline mirrors the pipeline (formerly "lattice") header entry of
+// the graph payload. JSON tag remains `lattice` while the API wire format
+// is unchanged.
+type GraphPipeline struct {
 	ID   string `json:"id"`
 	Name string `json:"name"`
 }
@@ -58,9 +62,9 @@ type GraphLattice struct {
 // Graph mirrors the JSON returned by GET /pipelines/{id}/graph and
 // GET /pipelines/{id}/versions/{ver}/graph.
 type Graph struct {
-	Lattice GraphLattice `json:"lattice"`
-	Nodes   []GraphNode  `json:"nodes"`
-	Edges   []GraphEdge  `json:"edges"`
+	Pipeline GraphPipeline `json:"lattice"`
+	Nodes    []GraphNode   `json:"nodes"`
+	Edges    []GraphEdge   `json:"edges"`
 }
 
 // ListVersions fetches a paginated list of versions for a pipeline.

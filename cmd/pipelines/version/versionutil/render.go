@@ -45,9 +45,9 @@ func PrintVersionJSON(v pipelines.PipelineVersion) error {
 
 // PrintVersionHuman renders the key facts about a single version.
 func PrintVersionHuman(v pipelines.PipelineVersion) {
-	electrons := "\u2014"
-	if len(v.ElectronNames) > 0 {
-		electrons = strings.Join(v.ElectronNames, ", ")
+	tasks := "\u2014"
+	if len(v.TaskNames) > 0 {
+		tasks = strings.Join(v.TaskNames, ", ")
 	}
 
 	python := v.PythonVersion
@@ -56,10 +56,10 @@ func PrintVersionHuman(v pipelines.PipelineVersion) {
 	}
 
 	fmt.Println(tui.BaseTextStyle.Render("Version:        v" + strconv.Itoa(v.Version)))
-	fmt.Println(tui.BaseTextStyle.Render("Lattice:        " + v.LatticeName))
+	fmt.Println(tui.BaseTextStyle.Render("Pipeline:       " + v.PipelineName))
 	fmt.Println(tui.BaseTextStyle.Render("Status:         " + v.Status))
 	fmt.Println(tui.BaseTextStyle.Render("Python Version: " + python))
-	fmt.Println(tui.BaseTextStyle.Render("Electrons:      " + electrons))
+	fmt.Println(tui.BaseTextStyle.Render("Tasks:          " + tasks))
 
 	if v.ErrorDetail != "" {
 		fmt.Println(tui.BaseTextStyle.Render("Error:          " + v.ErrorDetail))
@@ -90,12 +90,12 @@ func PrintVersionListHuman(items []pipelines.PipelineVersion) {
 
 	writer := tabwriter.NewWriter(os.Stdout, 0, 0, 2, ' ', 0)
 
-	fmt.Fprintln(writer, "VERSION\tSTATUS\tPYTHON\tCREATED\tELECTRONS")
+	fmt.Fprintln(writer, "VERSION\tSTATUS\tPYTHON\tCREATED\tTASKS")
 
 	for _, v := range items {
-		electrons := "\u2014"
-		if len(v.ElectronNames) > 0 {
-			electrons = strings.Join(v.ElectronNames, ", ")
+		tasks := "\u2014"
+		if len(v.TaskNames) > 0 {
+			tasks = strings.Join(v.TaskNames, ", ")
 		}
 
 		python := v.PythonVersion
@@ -108,7 +108,7 @@ func PrintVersionListHuman(items []pipelines.PipelineVersion) {
 			v.Status,
 			python,
 			v.CreatedAt.UTC().Format(time.RFC3339),
-			electrons,
+			tasks,
 		)
 	}
 

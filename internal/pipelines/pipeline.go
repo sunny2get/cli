@@ -42,11 +42,17 @@ const (
 )
 
 // PipelineVersion mirrors PipelineVersionResponse from the pipelines-api.
+//
+// JSON tags `lattice_name` and `electron_names` track the current API wire
+// format. The DataRobot terminology has moved to `pipeline_name` / `task_names`
+// — when the API updates the wire format, flip the json tags here. Until then
+// the Go-level identifiers (PipelineName, TaskNames) use the new names so the
+// rest of the codebase reads cleanly.
 type PipelineVersion struct {
 	Version        int            `json:"version"`
 	Status         string         `json:"status"`
-	LatticeName    string         `json:"lattice_name"`
-	ElectronNames  []string       `json:"electron_names,omitempty"`
+	PipelineName   string         `json:"lattice_name"`
+	TaskNames      []string       `json:"electron_names,omitempty"`
 	PythonVersion  string         `json:"python_version"`
 	ResourceBundle map[string]any `json:"resource_bundle,omitempty"`
 	ErrorDetail    string         `json:"error_detail,omitempty"`
@@ -67,14 +73,17 @@ type Pipeline struct {
 
 // CreateResponse mirrors PipelineCreateResponse from the pipelines-api.
 // It is also returned by PATCH /pipelines/{id}.
+//
+// See PipelineVersion for the rationale on the legacy `electron_names`
+// JSON tag.
 type CreateResponse struct {
-	PipelineID    string    `json:"pipeline_id"`
-	Name          string    `json:"name"`
-	Version       int       `json:"version"`
-	Status        string    `json:"status"`
-	Mode          string    `json:"mode"`
-	ElectronNames []string  `json:"electron_names,omitempty"`
-	CreatedAt     time.Time `json:"created_at"`
+	PipelineID string    `json:"pipeline_id"`
+	Name       string    `json:"name"`
+	Version    int       `json:"version"`
+	Status     string    `json:"status"`
+	Mode       string    `json:"mode"`
+	TaskNames  []string  `json:"electron_names,omitempty"`
+	CreatedAt  time.Time `json:"created_at"`
 }
 
 // ListItem mirrors PipelineListItem from the pipelines-api.

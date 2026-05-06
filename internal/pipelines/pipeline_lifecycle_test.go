@@ -87,7 +87,7 @@ func TestLockPipeline_PromotesAndDecodes(t *testing.T) {
 	require.NoError(t, err)
 	assert.Equal(t, "locked", got.Mode)
 	assert.Equal(t, 3, got.Version)
-	assert.Equal(t, []string{"e1"}, got.ElectronNames)
+	assert.Equal(t, []string{"e1"}, got.TaskNames)
 }
 
 func TestLockPipeline_409Conflict(t *testing.T) {

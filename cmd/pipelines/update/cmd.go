@@ -38,8 +38,9 @@ func Cmd() *cobra.Command {
 		Short: "Re-upload a Python file to update a draft pipeline.",
 		Long: `Update an existing draft pipeline by re-uploading a Python file.
 
-A new version is appended to the pipeline. The lattice name in the uploaded
-file must match the existing pipeline name. Locked pipelines cannot be updated.
+A new version is appended to the pipeline. The pipeline name encoded in the
+uploaded file must match the existing pipeline name. Locked pipelines cannot
+be updated.
 
 The path to the Python file can be supplied either as a positional argument
 or via the --from-file=<path> flag. Exactly one of the two must be provided.
@@ -117,16 +118,16 @@ func printUpdateJSON(result pipelines.CreateResponse) error {
 }
 
 func printUpdateHuman(result pipelines.CreateResponse) {
-	electrons := "\u2014"
-	if len(result.ElectronNames) > 0 {
-		electrons = strings.Join(result.ElectronNames, ", ")
+	tasks := "\u2014"
+	if len(result.TaskNames) > 0 {
+		tasks = strings.Join(result.TaskNames, ", ")
 	}
 
-	fmt.Println(tui.BaseTextStyle.Render("Pipeline:  " + result.PipelineID))
-	fmt.Println(tui.BaseTextStyle.Render("Name:      " + result.Name))
-	fmt.Println(tui.BaseTextStyle.Render(fmt.Sprintf("Version:   %d", result.Version)))
-	fmt.Println(tui.BaseTextStyle.Render("Status:    " + result.Status))
-	fmt.Println(tui.BaseTextStyle.Render("Mode:      " + result.Mode))
-	fmt.Println(tui.BaseTextStyle.Render("Electrons: " + electrons))
-	fmt.Println(tui.DimStyle.Render("Updated:   " + result.CreatedAt.UTC().Format(time.RFC3339)))
+	fmt.Println(tui.BaseTextStyle.Render("Pipeline ID:  " + result.PipelineID))
+	fmt.Println(tui.BaseTextStyle.Render("Name:         " + result.Name))
+	fmt.Println(tui.BaseTextStyle.Render(fmt.Sprintf("Version:      %d", result.Version)))
+	fmt.Println(tui.BaseTextStyle.Render("Status:       " + result.Status))
+	fmt.Println(tui.BaseTextStyle.Render("Mode:         " + result.Mode))
+	fmt.Println(tui.BaseTextStyle.Render("Tasks:        " + tasks))
+	fmt.Println(tui.DimStyle.Render("Updated:      " + result.CreatedAt.UTC().Format(time.RFC3339)))
 }

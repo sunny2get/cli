@@ -11,7 +11,7 @@ endpoint.
 # List pipelines registered with the pipelines service
 dr pipelines list
 
-# Register a new draft pipeline by uploading a Covalent lattice
+# Register a new draft pipeline by uploading a DataRobot pipeline source file
 dr pipelines create ./my_pipeline.py --description "First draft"
 
 # Append a new version after editing the file
@@ -43,7 +43,7 @@ dr pipelines <command> [subcommand] [flags]
 
 ## Description
 
-A **pipeline** is a versioned wrapper around a Covalent lattice. Each
+A **pipeline** is a versioned bundle of Python source defining a DataRobot pipeline (one or more tasks). Each
 top-level `dr pipelines` subcommand operates on one of four resources:
 
 - the **pipeline** itself (create, list, get, update, delete, lock),
@@ -56,10 +56,10 @@ top-level `dr pipelines` subcommand operates on one of four resources:
 
 Versions are created automatically:
 
-- The first `create` call registers the lattice as **v1** in `draft`
+- The first `create` call registers the source as **v1** in `draft`
   mode.
 - `update` re-uploads the same file (or an edited copy) and appends
-  **v2**, **v3**, etc., as long as the lattice name still matches and
+  **v2**, **v3**, etc., as long as the pipeline name still matches and
   the pipeline is still in `draft` mode.
 - `lock` promotes a draft to **locked** mode. Locked pipelines are
   immutable; their inputs and schedules become valid.
@@ -83,7 +83,7 @@ to a frozen version) — selected via the shared `--scope` and
 | `dr pipelines delete`        | `DELETE /api/v2/pipelines/{id}`                  | Remove a pipeline and all of its versions.             |
 | `dr pipelines lock`          | `PATCH  /api/v2/pipelines/{id}/mode`             | Promote a draft to locked mode.                        |
 | `dr pipelines version …`     | `…/versions[/{ver}]`                             | Inspect pipeline versions.                             |
-| `dr pipelines graph`         | `…/graph` (draft) or `…/versions/{ver}/graph`    | Render the lattice/electron DAG.                       |
+| `dr pipelines graph`         | `…/graph` (draft) or `…/versions/{ver}/graph`    | Render the pipeline/task DAG.                          |
 | `dr pipelines input …`       | `…/inputs` and `…/inputs/{input_id}`             | Manage JSON payloads for dispatches.                   |
 | `dr pipelines dispatch …`    | `…/dispatches` and `…/dispatches/{dispatch_id}`  | Trigger, inspect, and cancel runs.                     |
 | `dr pipelines schedule …`    | `…/versions/{ver}/schedules`                     | Manage recurring (cron) dispatches on locked versions. |
@@ -93,8 +93,8 @@ to a frozen version) — selected via the shared `--scope` and
 
 ### `create`
 
-Upload a Python file containing a Covalent lattice and register a new
-pipeline. The lattice name is extracted from the file and used as the
+Upload a Python file defining a DataRobot pipeline (one or more tasks) and
+register a new pipeline. The pipeline name is extracted from the file and used as the
 pipeline name.
 
 ```bash
@@ -104,7 +104,7 @@ dr pipelines create --from-file=<file> [flags]
 
 **Arguments:**
 
-- `<file>` — path to a `.py` file containing a single Covalent lattice.
+- `<file>` — path to a `.py` file containing a single DataRobot pipeline.
   Mutually exclusive with `--from-file`.
 
 **Flags:**
@@ -120,13 +120,13 @@ dr pipelines create --from-file=<file> [flags]
 
 ```bash
 $ dr pipelines create ./confluence_to_vdb.py --description "test"
-Pipeline:  6658f441-a8f5-4f21-b4d8-6cccf4c94c5b
-Name:      confluence_to_vdb
-Version:   1
-Status:    READY
-Mode:      draft
-Electrons: create_vector_database, ingest_confluence_files, setup_credential_and_datastore
-Created:   2026-04-28T11:42:28Z
+Pipeline ID:  6658f441-a8f5-4f21-b4d8-6cccf4c94c5b
+Name:         confluence_to_vdb
+Version:      1
+Status:       READY
+Mode:         draft
+Tasks:        create_vector_database, ingest_confluence_files, setup_credential_and_datastore
+Created:      2026-04-28T11:42:28Z
 ```
 
 ### `list`
@@ -158,7 +158,7 @@ ID                                    NAME               MODE   ACTIVE  VERSION 
 | Column    | Meaning                                                         |
 |-----------|-----------------------------------------------------------------|
 | `ID`      | Pipeline UUID, used as the argument to `get` / `update` / etc.  |
-| `NAME`    | Lattice name extracted from the originally uploaded file.       |
+| `NAME`    | Pipeline name extracted from the originally uploaded file.     |
 | `MODE`    | `draft` (mutable) or `locked` (immutable).                      |
 | `ACTIVE`  | `true` while the pipeline has not been soft-deleted.            |
 | `VERSION` | Latest version number, or `—` when no versions exist yet.       |
@@ -193,7 +193,7 @@ Created:     2026-04-28T11:42:28Z
 Updated:     2026-04-28T12:25:11Z
 
 Versions (3):
-  VERSION  STATUS  PYTHON  CREATED               ELECTRONS
+  VERSION  STATUS  PYTHON  CREATED               TASKS
   v1       READY   3.12    2026-04-28T11:42:28Z  create_vector_database, ingest_confluence_files, setup_credential_and_datastore
   v2       READY   3.12    2026-04-28T12:24:54Z  create_vector_database, ingest_confluence_files, setup_credential_and_datastore
   v3       READY   3.12    2026-04-28T12:25:11Z  create_vector_database, ingest_confluence_files, setup_credential_and_datastore
@@ -229,8 +229,8 @@ dr pipelines update <pipeline-id> --from-file=<file> [flags]
 
 **Constraints:**
 
-- The lattice name in the uploaded file **must match** the pipeline's
-  existing name. To register a different lattice, use `create` instead.
+- The pipeline name encoded in the uploaded file **must match** the pipeline's
+  existing name. To register a different pipeline, use `create` instead.
 - Locked pipelines cannot be updated. The API responds with
   `409 Conflict`.
 
@@ -278,13 +278,13 @@ dr pipelines lock <pipeline-id> [flags]
 
 ```bash
 $ dr pipelines lock 6658f441-a8f5-4f21-b4d8-6cccf4c94c5b
-Pipeline:  6658f441-a8f5-4f21-b4d8-6cccf4c94c5b
-Name:      confluence_to_vdb
-Mode:      locked
-Version:   v3
-Status:    READY
-Electrons: create_vector_database, ingest_confluence_files, setup_credential_and_datastore
-Locked:    2026-04-28T12:30:00Z
+Pipeline ID:  6658f441-a8f5-4f21-b4d8-6cccf4c94c5b
+Name:         confluence_to_vdb
+Mode:         locked
+Version:      v3
+Status:       READY
+Tasks:        create_vector_database, ingest_confluence_files, setup_credential_and_datastore
+Locked:       2026-04-28T12:30:00Z
 ```
 
 ### `version`
@@ -298,12 +298,12 @@ dr pipelines version get  --pipeline <id> <version-id>     [--output json]
 
 `version list` returns the same data that's shown inline by
 `pipelines get`, but in a paginated stand-alone view. `version get`
-shows a single version in detail (lattice, electrons, Python version,
+shows a single version in detail (pipeline, tasks, Python version,
 creation timestamp, and any error detail).
 
 ### `graph`
 
-Display the lattice/electron DAG for a pipeline as either a JSON
+Display the pipeline/task DAG for a pipeline as either a JSON
 payload (for visualisation tooling) or a human-readable summary.
 
 ```bash
@@ -314,9 +314,10 @@ dr pipelines graph --pipeline <id> --scope=locked --version=N
 dr pipelines graph --pipeline <id> --output json         # JSON payload
 ```
 
-The human view prints the lattice header followed by `Nodes (N):` and
+The human view prints the pipeline header followed by `Nodes (N):` and
 `Edges (M):` tables. Pass `--output json` to get the structured `Graph`
-object (`lattice`, `nodes[]`, `edges[]`) suitable for piping to
+object (`lattice`, `nodes[]`, `edges[]` — JSON keys preserved while the API
+wire format is unchanged) suitable for piping to
 visualisation tooling.
 
 See [Shared `--scope` / `--version` semantics](#scope--version-flags)
@@ -560,7 +561,7 @@ common status codes you will see:
 
 | Status | Cause                                                                              |
 |--------|------------------------------------------------------------------------------------|
-| `400`  | Invalid Python file, mismatched lattice name, or malformed JSON payload.           |
+| `400`  | Invalid Python file, mismatched pipeline name, or malformed JSON payload.          |
 | `404`  | The provided `<pipeline-id>` / version / input / dispatch / schedule does not exist. |
 | `409`  | Tried to update a `locked` pipeline, or cancel an already-terminal dispatch.       |
 

@@ -57,7 +57,7 @@ func PrintDispatchHuman(d pipelines.Dispatch) {
 	}
 
 	fmt.Println(tui.BaseTextStyle.Render("Dispatch ID:        " + d.DispatchID))
-	fmt.Println(tui.BaseTextStyle.Render("Pipeline:           " + d.PipelineID))
+	fmt.Println(tui.BaseTextStyle.Render("Pipeline ID:        " + d.PipelineID))
 	fmt.Println(tui.BaseTextStyle.Render("Scope:              " + scope))
 	fmt.Println(tui.BaseTextStyle.Render("Version:            " + versionDisplay))
 	fmt.Println(tui.BaseTextStyle.Render("Input ID:           " + d.InputID))
