@@ -13,7 +13,7 @@
 // limitations under the License.
 
 // Package scopeflag bundles the --pipeline / --scope / --version flags
-// reused by the input and dispatch CLI command groups.
+// reused by the input and run CLI command groups.
 
 package scopeflag
 

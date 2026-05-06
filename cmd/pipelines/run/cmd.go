@@ -12,27 +12,27 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package dispatch
+package run
 
 import (
-	"github.com/datarobot/cli/cmd/pipelines/dispatch/cancel"
-	"github.com/datarobot/cli/cmd/pipelines/dispatch/create"
-	"github.com/datarobot/cli/cmd/pipelines/dispatch/get"
-	"github.com/datarobot/cli/cmd/pipelines/dispatch/list"
-	"github.com/datarobot/cli/cmd/pipelines/dispatch/status"
+	"github.com/datarobot/cli/cmd/pipelines/run/cancel"
+	"github.com/datarobot/cli/cmd/pipelines/run/create"
+	"github.com/datarobot/cli/cmd/pipelines/run/get"
+	"github.com/datarobot/cli/cmd/pipelines/run/list"
+	"github.com/datarobot/cli/cmd/pipelines/run/status"
 	"github.com/spf13/cobra"
 )
 
-// Cmd returns the parent command for `dr pipelines dispatch`.
+// Cmd returns the parent command for `dr pipelines run`.
 func Cmd() *cobra.Command {
 	cmd := &cobra.Command{
-		Use:   "dispatch",
-		Short: "Manage pipeline dispatches",
-		Long: `Trigger and inspect dispatches (single executions) of a pipeline.
+		Use:   "run",
+		Short: "Manage pipeline runs",
+		Long: `Trigger and inspect runs (single executions) of a pipeline.
 
-Dispatches come in two scopes:
-  - draft   : runs against the in-flight draft of a pipeline
-  - locked  : runs against a specific frozen version
+Runs come in two scopes:
+  - draft   : executes against the in-flight draft of a pipeline
+  - locked  : executes against a specific frozen version
 
 When --version is supplied, the locked scope is selected automatically.`,
 	}

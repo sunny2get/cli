@@ -92,13 +92,13 @@ dr
 │   │   ├── get        Display a single input
 │   │   ├── update     Update a draft input's payload
 │   │   └── delete     Delete an input
-│   ├── dispatch       Trigger and inspect pipeline executions
-│   │   ├── create     Trigger a dispatch from an input
-│   │   ├── list       List dispatches for a pipeline
-│   │   ├── get        Display a single dispatch
-│   │   ├── status     Lightweight dispatch status (for polling)
-│   │   └── cancel     Cancel a running dispatch
-│   ├── schedule       Manage recurring (cron) dispatches (locked-only)
+│   ├── run            Trigger and inspect pipeline executions
+│   │   ├── create     Trigger a run from an input
+│   │   ├── list       List runs for a pipeline
+│   │   ├── get        Display a single run
+│   │   ├── status     Lightweight run status (for polling)
+│   │   └── cancel     Cancel a running run
+│   ├── schedule       Manage recurring (cron) runs (locked-only)
 │   │   ├── create     Register a recurring schedule on a locked version
 │   │   ├── list       List schedules for a locked version
 │   │   ├── get        Display a single schedule
@@ -281,9 +281,9 @@ For detailed documentation on each command, see:
   - `lock`&mdash;promote a draft pipeline to locked mode.
   - `version`&mdash;`list` / `get` to inspect pipeline versions.
   - `graph`&mdash;display the pipeline/task DAG (draft or locked).
-  - `input`&mdash;`create`/`list`/`get`/`update`/`delete` JSON payloads used by dispatches.
-  - `dispatch`&mdash;`create`/`list`/`get`/`status`/`cancel` pipeline executions.
-  - `schedule`&mdash;`create`/`list`/`get`/`update`/`delete` recurring (cron) dispatches on locked versions.
+  - `input`&mdash;`create`/`list`/`get`/`update`/`delete` JSON payloads used by runs.
+  - `run`&mdash;`create`/`list`/`get`/`status`/`cancel` pipeline executions.
+  - `schedule`&mdash;`create`/`list`/`get`/`update`/`delete` recurring (cron) runs on locked versions.
   - `environment`&mdash;`create`/`list`/`update`/`delete` named, immutable-versioned pip-package execution environments; `environment version delete` removes a specific older version.
 
 ## Getting help

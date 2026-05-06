@@ -60,7 +60,7 @@ type ScheduleUpdateRequest struct {
 	Timezone       *string `json:"timezone,omitempty"`
 }
 
-// CreateSchedule registers a new recurring dispatch for a locked version.
+// CreateSchedule registers a new recurring run for a locked version.
 func CreateSchedule(pipelineID string, version int, body ScheduleCreateRequest) (*Schedule, error) {
 	endpoint, err := EndpointFor(pipelineID, ScopeLocked, &version, "schedules")
 	if err != nil {

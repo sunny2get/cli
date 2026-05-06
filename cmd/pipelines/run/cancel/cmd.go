@@ -12,43 +12,37 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package list
+package cancel
 
 import (
 	"errors"
 	"fmt"
 
-	"github.com/datarobot/cli/cmd/pipelines/dispatch/dispatchutil"
 	"github.com/datarobot/cli/cmd/pipelines/scopeflag"
 	"github.com/datarobot/cli/internal/auth"
 	"github.com/datarobot/cli/internal/pipelines"
+	"github.com/datarobot/cli/tui"
 	"github.com/spf13/cobra"
 )
 
 func Cmd() *cobra.Command {
-	var (
-		flags        scopeflag.Flags
-		offset       int
-		limit        int
-		outputFormat string
-	)
+	var flags scopeflag.Flags
 
 	cmd := &cobra.Command{
-		Use:   "list",
-		Short: "List pipeline dispatches",
-		Long: `List dispatches for a pipeline.
+		Use:   "cancel <run-id>",
+		Short: "Cancel a pipeline run",
+		Long: `Request cancellation of an in-flight run.
+
+The API rejects cancellation if the run has already reached a terminal
+state (COMPLETED, FAILED, CANCELLED).
 
 Example:
-  dr pipelines dispatch list --pipeline <id>
-  dr pipelines dispatch list --pipeline <id> --version=2 --output json`,
-		Args:         cobra.NoArgs,
+  dr pipelines run cancel --pipeline <id> <run-id>
+  dr pipelines run cancel --pipeline <id> --version=2 <run-id>`,
+		Args:         cobra.ExactArgs(1),
 		PreRunE:      auth.EnsureAuthenticatedE,
 		SilenceUsage: true,
-		RunE: func(cmd *cobra.Command, _ []string) error {
-			if outputFormat != "" && outputFormat != "json" {
-				return fmt.Errorf("invalid output format: %s (supported: json)", outputFormat)
-			}
-
+		RunE: func(cmd *cobra.Command, args []string) error {
 			if flags.PipelineID == "" {
 				return errors.New("--pipeline is required")
 			}
@@ -58,25 +52,18 @@ Example:
 				return err
 			}
 
-			items, err := pipelines.ListDispatches(flags.PipelineID, scope, version, offset, limit)
+			err = pipelines.CancelRun(flags.PipelineID, scope, version, args[0])
 			if err != nil {
 				return err
 			}
 
-			if outputFormat == "json" {
-				return dispatchutil.PrintDispatchListJSON(items)
-			}
-
-			dispatchutil.PrintDispatchListHuman(items)
+			fmt.Println(tui.BaseTextStyle.Render("Cancelled run: " + args[0]))
 
 			return nil
 		},
 	}
 
 	flags.Bind(cmd)
-	cmd.Flags().IntVar(&offset, "offset", 0, "Pagination offset")
-	cmd.Flags().IntVar(&limit, "limit", 0, "Maximum number of dispatches to return")
-	cmd.Flags().StringVar(&outputFormat, "output", "", "Output format (json)")
 
 	return cmd
 }

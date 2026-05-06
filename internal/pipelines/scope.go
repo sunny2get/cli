@@ -13,7 +13,7 @@
 // limitations under the License.
 
 // scope.go contains the shared draft/locked scope resolution used by the
-// input and dispatch CLI commands. The pipelines API exposes two URL shapes
+// input and run CLI commands. The pipelines API exposes two URL shapes
 // for these resources:
 //
 //	draft  -> /pipelines/{id}/<sub>

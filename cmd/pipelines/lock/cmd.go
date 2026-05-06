@@ -34,7 +34,7 @@ func Cmd() *cobra.Command {
 		Use:   "lock <pipeline-id>",
 		Short: "Lock a draft pipeline",
 		Long: `Promote a draft pipeline to locked mode. Once locked, the pipeline can
-no longer be updated and locked dispatches/inputs/schedules become valid.
+no longer be updated and locked runs/inputs/schedules become valid.
 
 Example:
   dr pipelines lock 8a8d6e5e-1234-5678-90ab-cdef01234567

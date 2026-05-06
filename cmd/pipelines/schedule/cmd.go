@@ -28,7 +28,7 @@ func Cmd() *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "schedule",
 		Short: "Manage pipeline schedules",
-		Long: `Manage recurring (cron) dispatches of locked pipeline versions.
+		Long: `Manage recurring (cron) runs of locked pipeline versions.
 
 Schedules are only valid for locked pipeline versions, so every verb
 requires --pipeline and --version.`,

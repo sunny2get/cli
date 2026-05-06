@@ -12,37 +12,44 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package cancel
+package get
 
 import (
 	"errors"
 	"fmt"
+	"net/http"
 
+	"github.com/datarobot/cli/cmd/pipelines/run/runutil"
 	"github.com/datarobot/cli/cmd/pipelines/scopeflag"
 	"github.com/datarobot/cli/internal/auth"
+	"github.com/datarobot/cli/internal/drapi"
 	"github.com/datarobot/cli/internal/pipelines"
 	"github.com/datarobot/cli/tui"
 	"github.com/spf13/cobra"
 )
 
 func Cmd() *cobra.Command {
-	var flags scopeflag.Flags
+	var (
+		flags        scopeflag.Flags
+		outputFormat string
+	)
 
 	cmd := &cobra.Command{
-		Use:   "cancel <dispatch-id>",
-		Short: "Cancel a pipeline dispatch",
-		Long: `Request cancellation of an in-flight dispatch.
-
-The API rejects cancellation if the dispatch has already reached a terminal
-state (COMPLETED, FAILED, CANCELLED).
+		Use:   "get <run-id>",
+		Short: "Display details of a pipeline run",
+		Long: `Display the full record for a single run.
 
 Example:
-  dr pipelines dispatch cancel --pipeline <id> <dispatch-id>
-  dr pipelines dispatch cancel --pipeline <id> --version=2 <dispatch-id>`,
+  dr pipelines run get --pipeline <id> <run-id>
+  dr pipelines run get --pipeline <id> --version=2 <run-id> --output json`,
 		Args:         cobra.ExactArgs(1),
 		PreRunE:      auth.EnsureAuthenticatedE,
 		SilenceUsage: true,
 		RunE: func(cmd *cobra.Command, args []string) error {
+			if outputFormat != "" && outputFormat != "json" {
+				return fmt.Errorf("invalid output format: %s (supported: json)", outputFormat)
+			}
+
 			if flags.PipelineID == "" {
 				return errors.New("--pipeline is required")
 			}
@@ -52,18 +59,35 @@ Example:
 				return err
 			}
 
-			err = pipelines.CancelDispatch(flags.PipelineID, scope, version, args[0])
+			result, err := pipelines.GetRun(flags.PipelineID, scope, version, args[0])
 			if err != nil {
-				return err
+				return handleGetError(err, args[0])
 			}
 
-			fmt.Println(tui.BaseTextStyle.Render("Cancelled dispatch: " + args[0]))
+			if outputFormat == "json" {
+				return runutil.PrintRunJSON(*result)
+			}
+
+			runutil.PrintRunHuman(*result)
 
 			return nil
 		},
 	}
 
 	flags.Bind(cmd)
+	cmd.Flags().StringVar(&outputFormat, "output", "", "Output format (json)")
 
 	return cmd
+}
+
+func handleGetError(err error, runID string) error {
+	var httpErr *drapi.HTTPError
+
+	if errors.As(err, &httpErr) && httpErr.StatusCode == http.StatusNotFound {
+		fmt.Println(tui.DimStyle.Render("No run found with id: " + runID))
+
+		return nil
+	}
+
+	return err
 }

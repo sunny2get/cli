@@ -12,7 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package dispatchutil
+package runutil
 
 import (
 	"bytes"
@@ -48,30 +48,30 @@ func captureStdout(t *testing.T, fn func()) string {
 
 func intPtr(v int) *int { return &v }
 
-func sampleDraftDispatch() pipelines.Dispatch {
-	return pipelines.Dispatch{
-		DispatchID:  "d-1",
+func sampleDraftRun() pipelines.Run {
+	return pipelines.Run{
+		RunID:       "d-1",
 		PipelineID:  "pl-1",
 		InputID:     "in-1",
 		TriggeredBy: "user@example.com",
-		Status:      pipelines.DispatchStatusPending,
+		Status:      pipelines.RunStatusPending,
 		CreatedAt:   "2026-04-29T10:00:00Z",
 		UpdatedAt:   "2026-04-29T10:00:00Z",
 	}
 }
 
-func sampleLockedDispatch() pipelines.Dispatch {
-	d := sampleDraftDispatch()
-	d.VersionID = intPtr(3)
-	d.CovalentDispatchID = "cov-xyz"
-	d.Status = pipelines.DispatchStatusRunning
+func sampleLockedRun() pipelines.Run {
+	r := sampleDraftRun()
+	r.VersionID = intPtr(3)
+	r.CovalentDispatchID = "cov-xyz"
+	r.Status = pipelines.RunStatusRunning
 
-	return d
+	return r
 }
 
-func TestPrintDispatchJSON(t *testing.T) {
+func TestPrintRunJSON(t *testing.T) {
 	output := captureStdout(t, func() {
-		require.NoError(t, PrintDispatchJSON(sampleDraftDispatch()))
+		require.NoError(t, PrintRunJSON(sampleDraftRun()))
 	})
 
 	var parsed map[string]any
@@ -81,30 +81,30 @@ func TestPrintDispatchJSON(t *testing.T) {
 	assert.Equal(t, "PENDING", parsed["status"])
 }
 
-func TestPrintDispatchHuman_DraftMissingCovalent(t *testing.T) {
-	output := captureStdout(t, func() { PrintDispatchHuman(sampleDraftDispatch()) })
-	assert.Contains(t, output, "Dispatch ID:        d-1")
-	assert.Contains(t, output, "Scope:              draft")
-	assert.Contains(t, output, "Version:            \u2014")
-	assert.Contains(t, output, "Covalent Dispatch:  \u2014")
-	assert.Contains(t, output, "Status:             PENDING")
+func TestPrintRunHuman_DraftMissingCovalent(t *testing.T) {
+	output := captureStdout(t, func() { PrintRunHuman(sampleDraftRun()) })
+	assert.Contains(t, output, "Run ID:        d-1")
+	assert.Contains(t, output, "Scope:         draft")
+	assert.Contains(t, output, "Version:       \u2014")
+	assert.Contains(t, output, "Covalent Run:  \u2014")
+	assert.Contains(t, output, "Status:        PENDING")
 }
 
-func TestPrintDispatchHuman_LockedShowsErrorWhenSet(t *testing.T) {
-	d := sampleLockedDispatch()
-	d.Status = pipelines.DispatchStatusFailed
-	d.ErrorDetail = "boom"
+func TestPrintRunHuman_LockedShowsErrorWhenSet(t *testing.T) {
+	r := sampleLockedRun()
+	r.Status = pipelines.RunStatusFailed
+	r.ErrorDetail = "boom"
 
-	output := captureStdout(t, func() { PrintDispatchHuman(d) })
-	assert.Contains(t, output, "Scope:              locked")
-	assert.Contains(t, output, "Version:            v3")
-	assert.Contains(t, output, "Covalent Dispatch:  cov-xyz")
-	assert.Contains(t, output, "Error:              boom")
+	output := captureStdout(t, func() { PrintRunHuman(r) })
+	assert.Contains(t, output, "Scope:         locked")
+	assert.Contains(t, output, "Version:       v3")
+	assert.Contains(t, output, "Covalent Run:  cov-xyz")
+	assert.Contains(t, output, "Error:         boom")
 }
 
-func TestPrintDispatchListJSON(t *testing.T) {
+func TestPrintRunListJSON(t *testing.T) {
 	output := captureStdout(t, func() {
-		require.NoError(t, PrintDispatchListJSON([]pipelines.Dispatch{sampleDraftDispatch()}))
+		require.NoError(t, PrintRunListJSON([]pipelines.Run{sampleDraftRun()}))
 	})
 
 	var parsed []map[string]any
@@ -114,17 +114,17 @@ func TestPrintDispatchListJSON(t *testing.T) {
 	assert.Equal(t, "d-1", parsed[0]["dispatch_id"])
 }
 
-func TestPrintDispatchListHuman_Empty(t *testing.T) {
-	output := captureStdout(t, func() { PrintDispatchListHuman(nil) })
-	assert.Contains(t, output, "No dispatches found")
+func TestPrintRunListHuman_Empty(t *testing.T) {
+	output := captureStdout(t, func() { PrintRunListHuman(nil) })
+	assert.Contains(t, output, "No runs found")
 }
 
-func TestPrintDispatchListHuman_RendersTable(t *testing.T) {
+func TestPrintRunListHuman_RendersTable(t *testing.T) {
 	output := captureStdout(t, func() {
-		PrintDispatchListHuman([]pipelines.Dispatch{sampleDraftDispatch(), sampleLockedDispatch()})
+		PrintRunListHuman([]pipelines.Run{sampleDraftRun(), sampleLockedRun()})
 	})
 
-	assert.Contains(t, output, "DISPATCH_ID")
+	assert.Contains(t, output, "RUN_ID")
 	assert.Contains(t, output, "STATUS")
 	assert.Contains(t, output, "TRIGGER")
 	assert.Contains(t, output, "draft")
@@ -135,9 +135,9 @@ func TestPrintDispatchListHuman_RendersTable(t *testing.T) {
 }
 
 func TestPrintStatusJSON(t *testing.T) {
-	status := pipelines.DispatchStatus{
-		DispatchID:         "d-1",
-		Status:             pipelines.DispatchStatusCompleted,
+	status := pipelines.RunStatus{
+		RunID:              "d-1",
+		Status:             pipelines.RunStatusCompleted,
 		CovalentDispatchID: "cov-xyz",
 	}
 
@@ -152,12 +152,12 @@ func TestPrintStatusJSON(t *testing.T) {
 	assert.Equal(t, "cov-xyz", parsed["covalent_dispatch_id"])
 }
 
-func TestPrintStatusHuman_NoCovalentDispatchID(t *testing.T) {
+func TestPrintStatusHuman_NoCovalentRunID(t *testing.T) {
 	output := captureStdout(t, func() {
-		PrintStatusHuman(pipelines.DispatchStatus{DispatchID: "d-1", Status: "PENDING"})
+		PrintStatusHuman(pipelines.RunStatus{RunID: "d-1", Status: "PENDING"})
 	})
 
-	assert.Contains(t, output, "Dispatch ID:        d-1")
-	assert.Contains(t, output, "Status:             PENDING")
-	assert.Contains(t, output, "Covalent Dispatch:  \u2014")
+	assert.Contains(t, output, "Run ID:        d-1")
+	assert.Contains(t, output, "Status:        PENDING")
+	assert.Contains(t, output, "Covalent Run:  \u2014")
 }

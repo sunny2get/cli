@@ -12,40 +12,39 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package status
+package list
 
 import (
 	"errors"
 	"fmt"
-	"net/http"
 
-	"github.com/datarobot/cli/cmd/pipelines/dispatch/dispatchutil"
+	"github.com/datarobot/cli/cmd/pipelines/run/runutil"
 	"github.com/datarobot/cli/cmd/pipelines/scopeflag"
 	"github.com/datarobot/cli/internal/auth"
-	"github.com/datarobot/cli/internal/drapi"
 	"github.com/datarobot/cli/internal/pipelines"
-	"github.com/datarobot/cli/tui"
 	"github.com/spf13/cobra"
 )
 
 func Cmd() *cobra.Command {
 	var (
 		flags        scopeflag.Flags
+		offset       int
+		limit        int
 		outputFormat string
 	)
 
 	cmd := &cobra.Command{
-		Use:   "status <dispatch-id>",
-		Short: "Get the lightweight status of a pipeline dispatch",
-		Long: `Poll a dispatch's current status without re-downloading the full record.
+		Use:   "list",
+		Short: "List pipeline runs",
+		Long: `List runs for a pipeline.
 
 Example:
-  dr pipelines dispatch status --pipeline <id> <dispatch-id>
-  dr pipelines dispatch status --pipeline <id> --version=2 <dispatch-id> --output json`,
-		Args:         cobra.ExactArgs(1),
+  dr pipelines run list --pipeline <id>
+  dr pipelines run list --pipeline <id> --version=2 --output json`,
+		Args:         cobra.NoArgs,
 		PreRunE:      auth.EnsureAuthenticatedE,
 		SilenceUsage: true,
-		RunE: func(cmd *cobra.Command, args []string) error {
+		RunE: func(cmd *cobra.Command, _ []string) error {
 			if outputFormat != "" && outputFormat != "json" {
 				return fmt.Errorf("invalid output format: %s (supported: json)", outputFormat)
 			}
@@ -59,35 +58,25 @@ Example:
 				return err
 			}
 
-			result, err := pipelines.GetDispatchStatus(flags.PipelineID, scope, version, args[0])
+			items, err := pipelines.ListRuns(flags.PipelineID, scope, version, offset, limit)
 			if err != nil {
-				return handleStatusError(err, args[0])
+				return err
 			}
 
 			if outputFormat == "json" {
-				return dispatchutil.PrintStatusJSON(*result)
+				return runutil.PrintRunListJSON(items)
 			}
 
-			dispatchutil.PrintStatusHuman(*result)
+			runutil.PrintRunListHuman(items)
 
 			return nil
 		},
 	}
 
 	flags.Bind(cmd)
+	cmd.Flags().IntVar(&offset, "offset", 0, "Pagination offset")
+	cmd.Flags().IntVar(&limit, "limit", 0, "Maximum number of runs to return")
 	cmd.Flags().StringVar(&outputFormat, "output", "", "Output format (json)")
 
 	return cmd
-}
-
-func handleStatusError(err error, dispatchID string) error {
-	var httpErr *drapi.HTTPError
-
-	if errors.As(err, &httpErr) && httpErr.StatusCode == http.StatusNotFound {
-		fmt.Println(tui.DimStyle.Render("No dispatch found with id: " + dispatchID))
-
-		return nil
-	}
-
-	return err
 }

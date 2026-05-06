@@ -17,13 +17,13 @@ package pipelines
 import (
 	"github.com/datarobot/cli/cmd/pipelines/create"
 	"github.com/datarobot/cli/cmd/pipelines/del"
-	"github.com/datarobot/cli/cmd/pipelines/dispatch"
 	"github.com/datarobot/cli/cmd/pipelines/environment"
 	"github.com/datarobot/cli/cmd/pipelines/get"
 	"github.com/datarobot/cli/cmd/pipelines/graph"
 	"github.com/datarobot/cli/cmd/pipelines/input"
 	"github.com/datarobot/cli/cmd/pipelines/list"
 	"github.com/datarobot/cli/cmd/pipelines/lock"
+	"github.com/datarobot/cli/cmd/pipelines/run"
 	"github.com/datarobot/cli/cmd/pipelines/schedule"
 	"github.com/datarobot/cli/cmd/pipelines/update"
 	"github.com/datarobot/cli/cmd/pipelines/version"
@@ -40,7 +40,7 @@ func Cmd() *cobra.Command {
 
 Create, list, inspect, and update pipelines registered with the
 DataRobot pipelines service. Sub-commands are also available for managing
-input payloads, dispatches, and recurring schedules.`,
+input payloads, runs, and recurring schedules.`,
 	}
 
 	features.SetGate(cmd, "pipelines")
@@ -55,7 +55,7 @@ input payloads, dispatches, and recurring schedules.`,
 		version.Cmd(),
 		graph.Cmd(),
 		input.Cmd(),
-		dispatch.Cmd(),
+		run.Cmd(),
 		schedule.Cmd(),
 		environment.Cmd(),
 	)

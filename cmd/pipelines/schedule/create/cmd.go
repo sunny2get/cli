@@ -37,7 +37,7 @@ func Cmd() *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "create",
 		Short: "Create a recurring schedule for a locked pipeline version",
-		Long: `Register a cron-style schedule that triggers a dispatch on a fixed cadence.
+		Long: `Register a cron-style schedule that triggers a run on a fixed cadence.
 
 Example:
   dr pipelines schedule create --pipeline <id> --version=2 --cron "0 * * * *" --input <input-id>
@@ -90,7 +90,7 @@ Example:
 	cmd.Flags().StringVar(&pipelineID, "pipeline", "", "Pipeline ID")
 	cmd.Flags().IntVar(&version, "version", 0, "Locked pipeline version")
 	cmd.Flags().StringVar(&cron, "cron", "", "Cron expression, e.g. \"0 * * * *\"")
-	cmd.Flags().StringVar(&inputID, "input", "", "Input ID to dispatch on each tick")
+	cmd.Flags().StringVar(&inputID, "input", "", "Input ID to run on each tick")
 	cmd.Flags().StringVar(&timezone, "timezone", "", "IANA timezone name (default UTC)")
 	cmd.Flags().StringVar(&outputFormat, "output", "", "Output format (json)")
 

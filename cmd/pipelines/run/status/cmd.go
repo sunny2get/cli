@@ -12,14 +12,14 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package get
+package status
 
 import (
 	"errors"
 	"fmt"
 	"net/http"
 
-	"github.com/datarobot/cli/cmd/pipelines/dispatch/dispatchutil"
+	"github.com/datarobot/cli/cmd/pipelines/run/runutil"
 	"github.com/datarobot/cli/cmd/pipelines/scopeflag"
 	"github.com/datarobot/cli/internal/auth"
 	"github.com/datarobot/cli/internal/drapi"
@@ -35,13 +35,13 @@ func Cmd() *cobra.Command {
 	)
 
 	cmd := &cobra.Command{
-		Use:   "get <dispatch-id>",
-		Short: "Display details of a pipeline dispatch",
-		Long: `Display the full record for a single dispatch.
+		Use:   "status <run-id>",
+		Short: "Get the lightweight status of a pipeline run",
+		Long: `Poll a run's current status without re-downloading the full record.
 
 Example:
-  dr pipelines dispatch get --pipeline <id> <dispatch-id>
-  dr pipelines dispatch get --pipeline <id> --version=2 <dispatch-id> --output json`,
+  dr pipelines run status --pipeline <id> <run-id>
+  dr pipelines run status --pipeline <id> --version=2 <run-id> --output json`,
 		Args:         cobra.ExactArgs(1),
 		PreRunE:      auth.EnsureAuthenticatedE,
 		SilenceUsage: true,
@@ -59,16 +59,16 @@ Example:
 				return err
 			}
 
-			result, err := pipelines.GetDispatch(flags.PipelineID, scope, version, args[0])
+			result, err := pipelines.GetRunStatus(flags.PipelineID, scope, version, args[0])
 			if err != nil {
-				return handleGetError(err, args[0])
+				return handleStatusError(err, args[0])
 			}
 
 			if outputFormat == "json" {
-				return dispatchutil.PrintDispatchJSON(*result)
+				return runutil.PrintStatusJSON(*result)
 			}
 
-			dispatchutil.PrintDispatchHuman(*result)
+			runutil.PrintStatusHuman(*result)
 
 			return nil
 		},
@@ -80,11 +80,11 @@ Example:
 	return cmd
 }
 
-func handleGetError(err error, dispatchID string) error {
+func handleStatusError(err error, runID string) error {
 	var httpErr *drapi.HTTPError
 
 	if errors.As(err, &httpErr) && httpErr.StatusCode == http.StatusNotFound {
-		fmt.Println(tui.DimStyle.Render("No dispatch found with id: " + dispatchID))
+		fmt.Println(tui.DimStyle.Render("No run found with id: " + runID))
 
 		return nil
 	}

@@ -13,7 +13,7 @@
 // limitations under the License.
 
 // transport.go centralizes the request execution paths used by the
-// non-multipart pipelines endpoints (inputs, dispatches, schedules):
+// non-multipart pipelines endpoints (inputs, runs, schedules):
 //
 //   - doJSON  - POST/PATCH a JSON body, optionally decode response.
 //   - doDelete - DELETE returning 204 (or any 2xx with empty body).

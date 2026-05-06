@@ -20,8 +20,8 @@ dr pipelines update <pipeline-id> ./my_pipeline.py
 # Promote the draft to locked when you are happy with it
 dr pipelines lock <pipeline-id>
 
-# Cancel a stuck dispatch
-dr pipelines dispatch cancel --pipeline <pipeline-id> <dispatch-id>
+# Cancel a stuck run
+dr pipelines run cancel --pipeline <pipeline-id> <run-id>
 ```
 
 > [!NOTE]
@@ -48,9 +48,9 @@ top-level `dr pipelines` subcommand operates on one of four resources:
 
 - the **pipeline** itself (create, list, get, update, delete, lock),
 - pipeline **versions** (list, get, graph),
-- pipeline **inputs** — JSON payloads supplied to a dispatch,
-- pipeline **dispatches** — concrete executions on Covalent,
-- pipeline **schedules** — recurring dispatches on a cron expression,
+- pipeline **inputs** — JSON payloads supplied to a run,
+- pipeline **runs** — concrete executions on Covalent,
+- pipeline **schedules** — recurring runs on a cron expression,
 - pipeline **environments** — named, immutable-versioned bags of pip
   packages that pipelines can be built against.
 
@@ -64,7 +64,7 @@ Versions are created automatically:
 - `lock` promotes a draft to **locked** mode. Locked pipelines are
   immutable; their inputs and schedules become valid.
 
-Inputs, dispatches, and the graph endpoint exist in two scopes —
+Inputs, runs, and the graph endpoint exist in two scopes —
 **draft** (mutable, no version pinned) and **locked** (immutable, tied
 to a frozen version) — selected via the shared `--scope` and
 `--version` flags. Schedules are locked-only.
@@ -84,9 +84,9 @@ to a frozen version) — selected via the shared `--scope` and
 | `dr pipelines lock`          | `PATCH  /api/v2/pipelines/{id}/mode`             | Promote a draft to locked mode.                        |
 | `dr pipelines version …`     | `…/versions[/{ver}]`                             | Inspect pipeline versions.                             |
 | `dr pipelines graph`         | `…/graph` (draft) or `…/versions/{ver}/graph`    | Render the pipeline/task DAG.                          |
-| `dr pipelines input …`       | `…/inputs` and `…/inputs/{input_id}`             | Manage JSON payloads for dispatches.                   |
-| `dr pipelines dispatch …`    | `…/dispatches` and `…/dispatches/{dispatch_id}`  | Trigger, inspect, and cancel runs.                     |
-| `dr pipelines schedule …`    | `…/versions/{ver}/schedules`                     | Manage recurring (cron) dispatches on locked versions. |
+| `dr pipelines input …`       | `…/inputs` and `…/inputs/{input_id}`             | Manage JSON payloads for runs.                         |
+| `dr pipelines run …`         | `…/dispatches` and `…/dispatches/{dispatch_id}`  | Trigger, inspect, and cancel runs.                     |
+| `dr pipelines schedule …`    | `…/versions/{ver}/schedules`                     | Manage recurring (cron) runs on locked versions.       |
 | `dr pipelines environment …` | `/api/v2/pipelines/environments[/...]`           | Manage named, versioned pip-package execution environments. |
 
 ## Subcommands
@@ -259,7 +259,7 @@ If the pipeline doesn't exist, `delete` prints
 ### `lock`
 
 Promote a draft pipeline to locked mode. Once locked, the pipeline can
-no longer be updated and locked dispatches/inputs/schedules become
+no longer be updated and locked runs/inputs/schedules become
 valid.
 
 ```bash
@@ -325,7 +325,7 @@ below for the full flag truth table.
 
 ### `input`
 
-Manage JSON payloads that drive a dispatch.
+Manage JSON payloads that drive a run.
 
 ```bash
 dr pipelines input create --pipeline <id> <payload-file>            # draft scope
@@ -341,29 +341,29 @@ dr pipelines input delete --pipeline <id> <input-id>      [--scope|--version]
 - All verbs accept `--scope` / `--version` (see below). Inputs in the
   `locked` scope are immutable, so `input update` is draft-only.
 
-### `dispatch`
+### `run`
 
 Trigger, inspect, and cancel pipeline executions.
 
 ```bash
-dr pipelines dispatch create --pipeline <id> --input <input-id>          # draft
-dr pipelines dispatch create --pipeline <id> --version=N --input <input-id>  # locked
-dr pipelines dispatch list   --pipeline <id> [--scope|--version]
-dr pipelines dispatch get    --pipeline <id> <dispatch-id> [--scope|--version]
-dr pipelines dispatch status --pipeline <id> <dispatch-id> [--scope|--version]
-dr pipelines dispatch cancel --pipeline <id> <dispatch-id> [--scope|--version]
+dr pipelines run create --pipeline <id> --input <input-id>          # draft
+dr pipelines run create --pipeline <id> --version=N --input <input-id>  # locked
+dr pipelines run list   --pipeline <id> [--scope|--version]
+dr pipelines run get    --pipeline <id> <run-id> [--scope|--version]
+dr pipelines run status --pipeline <id> <run-id> [--scope|--version]
+dr pipelines run cancel --pipeline <id> <run-id> [--scope|--version]
 ```
 
-`dispatch status` is a lighter-weight call than `dispatch get` —
-intended for polling — and returns just the dispatch ID, status, and
+`run status` is a lighter-weight call than `run get` —
+intended for polling — and returns just the run ID, status, and
 the corresponding Covalent dispatch ID.
 
-`dispatch cancel` returns `409 Conflict` if the dispatch is already in
+`run cancel` returns `409 Conflict` if the run is already in
 a terminal state (COMPLETED / FAILED / CANCELLED).
 
 ### `schedule`
 
-Manage recurring (cron) dispatches on locked versions only. Both
+Manage recurring (cron) runs on locked versions only. Both
 `--pipeline` and `--version` are required for every verb.
 
 ```bash
@@ -418,7 +418,7 @@ dr pipelines environment create --name ml-base \
 
 ### `--scope` / `--version` flags
 
-Inputs, dispatches, and `graph` mirror the API's two URL shapes —
+Inputs, runs, and `graph` mirror the API's two URL shapes —
 `/pipelines/{id}/…` for the mutable draft and
 `/pipelines/{id}/versions/{ver}/…` for a locked version — through a
 pair of optional flags:
@@ -526,17 +526,17 @@ dr pipelines version get  --pipeline <pipeline-id> 2
 dr pipelines graph        --pipeline <pipeline-id> --version=2 --output json
 ```
 
-### Run a dispatch
+### Trigger a run
 
 ```bash
 # 1. Register a JSON input on the draft scope
 dr pipelines input create --pipeline <pipeline-id> ./input.json
 
-# 2. Trigger a dispatch with that input
-dr pipelines dispatch create --pipeline <pipeline-id> --input <input-id>
+# 2. Trigger a run with that input
+dr pipelines run create --pipeline <pipeline-id> --input <input-id>
 
 # 3. Poll status until it reaches a terminal state
-dr pipelines dispatch status --pipeline <pipeline-id> <dispatch-id>
+dr pipelines run status --pipeline <pipeline-id> <run-id>
 ```
 
 ### Schedule a recurring run on a locked version
@@ -562,8 +562,8 @@ common status codes you will see:
 | Status | Cause                                                                              |
 |--------|------------------------------------------------------------------------------------|
 | `400`  | Invalid Python file, mismatched pipeline name, or malformed JSON payload.          |
-| `404`  | The provided `<pipeline-id>` / version / input / dispatch / schedule does not exist. |
-| `409`  | Tried to update a `locked` pipeline, or cancel an already-terminal dispatch.       |
+| `404`  | The provided `<pipeline-id>` / version / input / run / schedule does not exist.    |
+| `409`  | Tried to update a `locked` pipeline, or cancel an already-terminal run.            |
 
 For most `get` / `delete` verbs the CLI translates a 404 into a
 friendly informational line (e.g. `No pipeline found with id: …`) and

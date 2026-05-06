@@ -60,17 +60,19 @@ are documented under "Shared flag semantics" below.
 
 ---
 
-## Dispatches (`dr pipelines dispatch …`)
+## Runs (`dr pipelines run …`)
 
-Same draft/locked scope rules as inputs.
+Same draft/locked scope rules as inputs. The wire-level URLs and JSON
+field names still use the legacy term `dispatches` / `dispatch_id` —
+only the CLI surface has been renamed.
 
 | Command | API endpoint | Usage | Inputs |
 |---|---|---|---|
-| `dr pipelines dispatch create` | `POST /pipelines/{id}/dispatches` (draft) <br> `POST /pipelines/{id}/versions/{ver}/dispatches` (locked) | `dr pipelines dispatch create --pipeline <id> --input <input-id>` <br> `dr pipelines dispatch create --pipeline <id> --version=2 --input <input-id> --output json` | **Flags:** `--pipeline <id>` (required), `--input <input-id>` (required), `--scope`, `--version`, `--output json`. <br> **Body sent to API:** `{"input_id": "<input-id>"}`. |
-| `dr pipelines dispatch list` | `GET /pipelines/{id}/dispatches` (draft) <br> `GET /pipelines/{id}/versions/{ver}/dispatches` (locked) | `dr pipelines dispatch list --pipeline <id>` <br> `dr pipelines dispatch list --pipeline <id> --version=2 --output json` | **Flags:** `--pipeline <id>` (required), `--scope`, `--version`, `--offset <n>`, `--limit <n>`, `--output json`. |
-| `dr pipelines dispatch get` | `GET /pipelines/{id}/dispatches/{dispatch_id}` (draft) <br> `GET /pipelines/{id}/versions/{ver}/dispatches/{dispatch_id}` (locked) | `dr pipelines dispatch get --pipeline <id> <dispatch-id>` <br> `dr pipelines dispatch get --pipeline <id> --version=2 <dispatch-id> --output json` | **Positional:** `<dispatch-id>` (required). <br> **Flags:** `--pipeline <id>` (required), `--scope`, `--version`, `--output json`. |
-| `dr pipelines dispatch status` | `GET /pipelines/{id}/dispatches/{dispatch_id}/status` (draft) <br> `GET /pipelines/{id}/versions/{ver}/dispatches/{dispatch_id}/status` (locked) | `dr pipelines dispatch status --pipeline <id> <dispatch-id>` <br> `dr pipelines dispatch status --pipeline <id> --version=2 <dispatch-id> --output json` | **Positional:** `<dispatch-id>` (required). <br> **Flags:** `--pipeline <id>` (required), `--scope`, `--version`, `--output json`. |
-| `dr pipelines dispatch cancel` | `DELETE /pipelines/{id}/dispatches/{dispatch_id}` (draft) <br> `DELETE /pipelines/{id}/versions/{ver}/dispatches/{dispatch_id}` (locked) | `dr pipelines dispatch cancel --pipeline <id> <dispatch-id>` <br> `dr pipelines dispatch cancel --pipeline <id> --version=2 <dispatch-id>` | **Positional:** `<dispatch-id>` (required). <br> **Flags:** `--pipeline <id>` (required), `--scope`, `--version`. |
+| `dr pipelines run create` | `POST /pipelines/{id}/dispatches` (draft) <br> `POST /pipelines/{id}/versions/{ver}/dispatches` (locked) | `dr pipelines run create --pipeline <id> --input <input-id>` <br> `dr pipelines run create --pipeline <id> --version=2 --input <input-id> --output json` | **Flags:** `--pipeline <id>` (required), `--input <input-id>` (required), `--scope`, `--version`, `--output json`. <br> **Body sent to API:** `{"input_id": "<input-id>"}`. |
+| `dr pipelines run list` | `GET /pipelines/{id}/dispatches` (draft) <br> `GET /pipelines/{id}/versions/{ver}/dispatches` (locked) | `dr pipelines run list --pipeline <id>` <br> `dr pipelines run list --pipeline <id> --version=2 --output json` | **Flags:** `--pipeline <id>` (required), `--scope`, `--version`, `--offset <n>`, `--limit <n>`, `--output json`. |
+| `dr pipelines run get` | `GET /pipelines/{id}/dispatches/{dispatch_id}` (draft) <br> `GET /pipelines/{id}/versions/{ver}/dispatches/{dispatch_id}` (locked) | `dr pipelines run get --pipeline <id> <run-id>` <br> `dr pipelines run get --pipeline <id> --version=2 <run-id> --output json` | **Positional:** `<run-id>` (required). <br> **Flags:** `--pipeline <id>` (required), `--scope`, `--version`, `--output json`. |
+| `dr pipelines run status` | `GET /pipelines/{id}/dispatches/{dispatch_id}/status` (draft) <br> `GET /pipelines/{id}/versions/{ver}/dispatches/{dispatch_id}/status` (locked) | `dr pipelines run status --pipeline <id> <run-id>` <br> `dr pipelines run status --pipeline <id> --version=2 <run-id> --output json` | **Positional:** `<run-id>` (required). <br> **Flags:** `--pipeline <id>` (required), `--scope`, `--version`, `--output json`. |
+| `dr pipelines run cancel` | `DELETE /pipelines/{id}/dispatches/{dispatch_id}` (draft) <br> `DELETE /pipelines/{id}/versions/{ver}/dispatches/{dispatch_id}` (locked) | `dr pipelines run cancel --pipeline <id> <run-id>` <br> `dr pipelines run cancel --pipeline <id> --version=2 <run-id>` | **Positional:** `<run-id>` (required). <br> **Flags:** `--pipeline <id>` (required), `--scope`, `--version`. |
 
 ---
 
@@ -115,7 +117,7 @@ individually.
 
 ## Shared flag semantics
 
-### `--scope` / `--version` (inputs, dispatches, graph)
+### `--scope` / `--version` (inputs, runs, graph)
 
 The CLI mirrors the API's two URL shapes — `/pipelines/{id}/…` for the
 mutable draft and `/pipelines/{id}/versions/{ver}/…` for a locked
@@ -185,16 +187,16 @@ exercising a local API stub that doesn't implement `/version/`.
 | `PATCH /pipelines/{id}/inputs/{input_id}` | `dr pipelines input update` |
 | `DELETE /pipelines/{id}/inputs/{input_id}` | `dr pipelines input delete` (draft) |
 | `DELETE /pipelines/{id}/versions/{ver}/inputs/{input_id}` | `dr pipelines input delete --version=N` |
-| `POST /pipelines/{id}/dispatches` | `dr pipelines dispatch create` (draft) |
-| `POST /pipelines/{id}/versions/{ver}/dispatches` | `dr pipelines dispatch create --version=N` |
-| `GET /pipelines/{id}/dispatches` | `dr pipelines dispatch list` (draft) |
-| `GET /pipelines/{id}/versions/{ver}/dispatches` | `dr pipelines dispatch list --version=N` |
-| `GET /pipelines/{id}/dispatches/{dispatch_id}` | `dr pipelines dispatch get` (draft) |
-| `GET /pipelines/{id}/versions/{ver}/dispatches/{dispatch_id}` | `dr pipelines dispatch get --version=N` |
-| `GET /pipelines/{id}/dispatches/{dispatch_id}/status` | `dr pipelines dispatch status` (draft) |
-| `GET /pipelines/{id}/versions/{ver}/dispatches/{dispatch_id}/status` | `dr pipelines dispatch status --version=N` |
-| `DELETE /pipelines/{id}/dispatches/{dispatch_id}` | `dr pipelines dispatch cancel` (draft) |
-| `DELETE /pipelines/{id}/versions/{ver}/dispatches/{dispatch_id}` | `dr pipelines dispatch cancel --version=N` |
+| `POST /pipelines/{id}/dispatches` | `dr pipelines run create` (draft) |
+| `POST /pipelines/{id}/versions/{ver}/dispatches` | `dr pipelines run create --version=N` |
+| `GET /pipelines/{id}/dispatches` | `dr pipelines run list` (draft) |
+| `GET /pipelines/{id}/versions/{ver}/dispatches` | `dr pipelines run list --version=N` |
+| `GET /pipelines/{id}/dispatches/{dispatch_id}` | `dr pipelines run get` (draft) |
+| `GET /pipelines/{id}/versions/{ver}/dispatches/{dispatch_id}` | `dr pipelines run get --version=N` |
+| `GET /pipelines/{id}/dispatches/{dispatch_id}/status` | `dr pipelines run status` (draft) |
+| `GET /pipelines/{id}/versions/{ver}/dispatches/{dispatch_id}/status` | `dr pipelines run status --version=N` |
+| `DELETE /pipelines/{id}/dispatches/{dispatch_id}` | `dr pipelines run cancel` (draft) |
+| `DELETE /pipelines/{id}/versions/{ver}/dispatches/{dispatch_id}` | `dr pipelines run cancel --version=N` |
 | `POST /pipelines/{id}/versions/{ver}/schedules` | `dr pipelines schedule create` |
 | `GET /pipelines/{id}/versions/{ver}/schedules` | `dr pipelines schedule list` |
 | `GET /pipelines/{id}/versions/{ver}/schedules/{schedule_id}` | `dr pipelines schedule get` |

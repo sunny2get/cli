@@ -24,14 +24,14 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
-func TestCreateDispatch_DraftURLAndBody(t *testing.T) {
+func TestCreateRun_DraftURLAndBody(t *testing.T) {
 	installSkipAuth(t)
 
 	srv := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		assert.Equal(t, http.MethodPost, r.Method)
 		assert.Equal(t, "/api/v2/pipelines/p-1/dispatches", r.URL.Path)
 
-		var body DispatchCreateRequest
+		var body RunCreateRequest
 
 		assert.NoError(t, json.NewDecoder(r.Body).Decode(&body))
 		assert.Equal(t, "in-1", body.InputID)
@@ -44,13 +44,13 @@ func TestCreateDispatch_DraftURLAndBody(t *testing.T) {
 
 	installEndpoint(t, srv.URL)
 
-	got, err := CreateDispatch("p-1", ScopeDraft, nil, "in-1")
+	got, err := CreateRun("p-1", ScopeDraft, nil, "in-1")
 	require.NoError(t, err)
-	assert.Equal(t, "d-1", got.DispatchID)
-	assert.Equal(t, DispatchStatusPending, got.Status)
+	assert.Equal(t, "d-1", got.RunID)
+	assert.Equal(t, RunStatusPending, got.Status)
 }
 
-func TestCreateDispatch_LockedURL(t *testing.T) {
+func TestCreateRun_LockedURL(t *testing.T) {
 	installSkipAuth(t)
 
 	srv := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
@@ -65,13 +65,13 @@ func TestCreateDispatch_LockedURL(t *testing.T) {
 	installEndpoint(t, srv.URL)
 
 	v := 2
-	got, err := CreateDispatch("p-1", ScopeLocked, &v, "in-1")
+	got, err := CreateRun("p-1", ScopeLocked, &v, "in-1")
 	require.NoError(t, err)
 	require.NotNil(t, got.VersionID)
 	assert.Equal(t, 2, *got.VersionID)
 }
 
-func TestListDispatches_QueryAndDecode(t *testing.T) {
+func TestListRuns_QueryAndDecode(t *testing.T) {
 	installSkipAuth(t)
 
 	srv := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
@@ -87,13 +87,13 @@ func TestListDispatches_QueryAndDecode(t *testing.T) {
 
 	installEndpoint(t, srv.URL)
 
-	items, err := ListDispatches("p-1", ScopeDraft, nil, 10, 5)
+	items, err := ListRuns("p-1", ScopeDraft, nil, 10, 5)
 	require.NoError(t, err)
 	require.Len(t, items, 1)
-	assert.Equal(t, DispatchStatusRunning, items[0].Status)
+	assert.Equal(t, RunStatusRunning, items[0].Status)
 }
 
-func TestGetDispatch_TargetsCorrectURL(t *testing.T) {
+func TestGetRun_TargetsCorrectURL(t *testing.T) {
 	installSkipAuth(t)
 
 	srv := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
@@ -107,12 +107,12 @@ func TestGetDispatch_TargetsCorrectURL(t *testing.T) {
 
 	installEndpoint(t, srv.URL)
 
-	got, err := GetDispatch("p-1", ScopeDraft, nil, "d-1")
+	got, err := GetRun("p-1", ScopeDraft, nil, "d-1")
 	require.NoError(t, err)
-	assert.Equal(t, DispatchStatusCompleted, got.Status)
+	assert.Equal(t, RunStatusCompleted, got.Status)
 }
 
-func TestGetDispatchStatus_StatusEndpointURL(t *testing.T) {
+func TestGetRunStatus_StatusEndpointURL(t *testing.T) {
 	installSkipAuth(t)
 
 	srv := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
@@ -127,13 +127,13 @@ func TestGetDispatchStatus_StatusEndpointURL(t *testing.T) {
 	installEndpoint(t, srv.URL)
 
 	v := 2
-	got, err := GetDispatchStatus("p-1", ScopeLocked, &v, "d-1")
+	got, err := GetRunStatus("p-1", ScopeLocked, &v, "d-1")
 	require.NoError(t, err)
-	assert.Equal(t, DispatchStatusRunning, got.Status)
+	assert.Equal(t, RunStatusRunning, got.Status)
 	assert.Equal(t, "cov-x", got.CovalentDispatchID)
 }
 
-func TestCancelDispatch_DeletesDraftURL(t *testing.T) {
+func TestCancelRun_DeletesDraftURL(t *testing.T) {
 	installSkipAuth(t)
 
 	srv := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
@@ -146,10 +146,10 @@ func TestCancelDispatch_DeletesDraftURL(t *testing.T) {
 
 	installEndpoint(t, srv.URL)
 
-	require.NoError(t, CancelDispatch("p-1", ScopeDraft, nil, "d-1"))
+	require.NoError(t, CancelRun("p-1", ScopeDraft, nil, "d-1"))
 }
 
-func TestCancelDispatch_PropagatesConflict(t *testing.T) {
+func TestCancelRun_PropagatesConflict(t *testing.T) {
 	installSkipAuth(t)
 
 	srv := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, _ *http.Request) {
@@ -161,7 +161,7 @@ func TestCancelDispatch_PropagatesConflict(t *testing.T) {
 
 	installEndpoint(t, srv.URL)
 
-	err := CancelDispatch("p-1", ScopeDraft, nil, "d-1")
+	err := CancelRun("p-1", ScopeDraft, nil, "d-1")
 	require.Error(t, err)
 	assert.Contains(t, err.Error(), "HTTP 409")
 	assert.Contains(t, err.Error(), "already terminal")

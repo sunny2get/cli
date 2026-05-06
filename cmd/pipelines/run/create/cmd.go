@@ -18,7 +18,7 @@ import (
 	"errors"
 	"fmt"
 
-	"github.com/datarobot/cli/cmd/pipelines/dispatch/dispatchutil"
+	"github.com/datarobot/cli/cmd/pipelines/run/runutil"
 	"github.com/datarobot/cli/cmd/pipelines/scopeflag"
 	"github.com/datarobot/cli/internal/auth"
 	"github.com/datarobot/cli/internal/pipelines"
@@ -34,15 +34,15 @@ func Cmd() *cobra.Command {
 
 	cmd := &cobra.Command{
 		Use:   "create",
-		Short: "Trigger a pipeline dispatch",
-		Long: `Trigger a new dispatch (single execution) of a pipeline.
+		Short: "Trigger a pipeline run",
+		Long: `Trigger a new run (single execution) of a pipeline.
 
-The dispatch is created in PENDING state. Use ` + "`dr pipelines dispatch get`" + `
-or ` + "`dr pipelines dispatch status`" + ` to follow its progress.
+The run is created in PENDING state. Use ` + "`dr pipelines run get`" + `
+or ` + "`dr pipelines run status`" + ` to follow its progress.
 
 Example:
-  dr pipelines dispatch create --pipeline <id> --input <input-id>
-  dr pipelines dispatch create --pipeline <id> --version=2 --input <input-id> --output json`,
+  dr pipelines run create --pipeline <id> --input <input-id>
+  dr pipelines run create --pipeline <id> --version=2 --input <input-id> --output json`,
 		Args:         cobra.NoArgs,
 		PreRunE:      auth.EnsureAuthenticatedE,
 		SilenceUsage: true,
@@ -64,23 +64,23 @@ Example:
 				return err
 			}
 
-			result, err := pipelines.CreateDispatch(flags.PipelineID, scope, version, inputID)
+			result, err := pipelines.CreateRun(flags.PipelineID, scope, version, inputID)
 			if err != nil {
 				return err
 			}
 
 			if outputFormat == "json" {
-				return dispatchutil.PrintDispatchJSON(*result)
+				return runutil.PrintRunJSON(*result)
 			}
 
-			dispatchutil.PrintDispatchHuman(*result)
+			runutil.PrintRunHuman(*result)
 
 			return nil
 		},
 	}
 
 	flags.Bind(cmd)
-	cmd.Flags().StringVar(&inputID, "input", "", "Input ID to dispatch")
+	cmd.Flags().StringVar(&inputID, "input", "", "Input ID to trigger the run with")
 	cmd.Flags().StringVar(&outputFormat, "output", "", "Output format (json)")
 
 	return cmd
