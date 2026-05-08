@@ -77,8 +77,10 @@ func TestPrintRunJSON(t *testing.T) {
 	var parsed map[string]any
 
 	require.NoError(t, json.Unmarshal([]byte(output), &parsed))
-	assert.Equal(t, "d-1", parsed["dispatch_id"])
+	assert.Equal(t, "d-1", parsed["run_id"])
 	assert.Equal(t, "PENDING", parsed["status"])
+	_, hasLegacy := parsed["dispatch_id"]
+	assert.Falsef(t, hasLegacy, "expected legacy dispatch_id key to be absent")
 }
 
 func TestPrintRunHuman_DraftMissingCovalent(t *testing.T) {
@@ -111,7 +113,7 @@ func TestPrintRunListJSON(t *testing.T) {
 
 	require.NoError(t, json.Unmarshal([]byte(output), &parsed))
 	require.Len(t, parsed, 1)
-	assert.Equal(t, "d-1", parsed[0]["dispatch_id"])
+	assert.Equal(t, "d-1", parsed[0]["run_id"])
 }
 
 func TestPrintRunListHuman_Empty(t *testing.T) {
@@ -149,7 +151,8 @@ func TestPrintStatusJSON(t *testing.T) {
 
 	require.NoError(t, json.Unmarshal([]byte(output), &parsed))
 	assert.Equal(t, "COMPLETED", parsed["status"])
-	assert.Equal(t, "cov-xyz", parsed["covalent_dispatch_id"])
+	assert.Equal(t, "cov-xyz", parsed["covalent_run_id"])
+	assert.Equal(t, "d-1", parsed["run_id"])
 }
 
 func TestPrintStatusHuman_NoCovalentRunID(t *testing.T) {

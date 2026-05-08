@@ -62,9 +62,10 @@ are documented under "Shared flag semantics" below.
 
 ## Runs (`dr pipelines run …`)
 
-Same draft/locked scope rules as inputs. The wire-level URLs and JSON
-field names still use the legacy term `dispatches` / `dispatch_id` —
-only the CLI surface has been renamed.
+Same draft/locked scope rules as inputs. The wire-level URLs still use
+the legacy term `dispatches` / `dispatch_id`, but the CLI's `--output
+json` remaps these to `run_id` / `covalent_run_id` so the JSON output
+matches the rest of the CLI vocabulary.
 
 | Command | API endpoint | Usage | Inputs |
 |---|---|---|---|

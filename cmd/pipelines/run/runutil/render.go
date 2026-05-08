@@ -29,9 +29,56 @@ import (
 	"github.com/datarobot/cli/tui"
 )
 
-// PrintRunJSON marshals a run as indented JSON.
+// runJSON is the CLI-facing shape used for `--output json`. It mirrors
+// pipelines.Run but renames the wire-level fields to the CLI's `run`
+// vocabulary (`run_id`, `covalent_run_id`). Decoding still happens
+// through pipelines.Run, which keeps the API wire tags intact.
+type runJSON struct {
+	RunID         string `json:"run_id"`
+	PipelineID    string `json:"pipeline_id"`
+	VersionID     *int   `json:"version_id,omitempty"`
+	InputID       string `json:"input_id"`
+	CovalentRunID string `json:"covalent_run_id,omitempty"`
+	TriggeredBy   string `json:"triggered_by"`
+	Status        string `json:"status"`
+	ErrorDetail   string `json:"error_detail,omitempty"`
+	CreatedAt     string `json:"created_at"`
+	UpdatedAt     string `json:"updated_at"`
+}
+
+func toRunJSON(r pipelines.Run) runJSON {
+	return runJSON{
+		RunID:         r.RunID,
+		PipelineID:    r.PipelineID,
+		VersionID:     r.VersionID,
+		InputID:       r.InputID,
+		CovalentRunID: r.CovalentDispatchID,
+		TriggeredBy:   r.TriggeredBy,
+		Status:        r.Status,
+		ErrorDetail:   r.ErrorDetail,
+		CreatedAt:     r.CreatedAt,
+		UpdatedAt:     r.UpdatedAt,
+	}
+}
+
+// runStatusJSON mirrors pipelines.RunStatus with CLI-vocabulary keys.
+type runStatusJSON struct {
+	RunID         string `json:"run_id"`
+	Status        string `json:"status"`
+	CovalentRunID string `json:"covalent_run_id,omitempty"`
+}
+
+func toRunStatusJSON(s pipelines.RunStatus) runStatusJSON {
+	return runStatusJSON{
+		RunID:         s.RunID,
+		Status:        s.Status,
+		CovalentRunID: s.CovalentDispatchID,
+	}
+}
+
+// PrintRunJSON marshals a run as indented JSON using CLI-vocabulary keys.
 func PrintRunJSON(r pipelines.Run) error {
-	data, err := json.MarshalIndent(r, "", "  ")
+	data, err := json.MarshalIndent(toRunJSON(r), "", "  ")
 	if err != nil {
 		return err
 	}
@@ -73,9 +120,15 @@ func PrintRunHuman(r pipelines.Run) {
 	fmt.Println(tui.DimStyle.Render("Updated:       " + r.UpdatedAt))
 }
 
-// PrintRunListJSON marshals a list of runs as indented JSON.
+// PrintRunListJSON marshals a list of runs as indented JSON using
+// CLI-vocabulary keys.
 func PrintRunListJSON(items []pipelines.Run) error {
-	data, err := json.MarshalIndent(items, "", "  ")
+	view := make([]runJSON, len(items))
+	for i, r := range items {
+		view[i] = toRunJSON(r)
+	}
+
+	data, err := json.MarshalIndent(view, "", "  ")
 	if err != nil {
 		return err
 	}
@@ -114,9 +167,10 @@ func PrintRunListHuman(items []pipelines.Run) {
 	_ = writer.Flush()
 }
 
-// PrintStatusJSON marshals a lightweight status response as indented JSON.
+// PrintStatusJSON marshals a lightweight status response as indented JSON
+// using CLI-vocabulary keys.
 func PrintStatusJSON(s pipelines.RunStatus) error {
-	data, err := json.MarshalIndent(s, "", "  ")
+	data, err := json.MarshalIndent(toRunStatusJSON(s), "", "  ")
 	if err != nil {
 		return err
 	}
