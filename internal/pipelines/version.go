@@ -34,29 +34,33 @@ import (
 	"github.com/datarobot/cli/internal/config"
 )
 
-// GraphNode mirrors a node entry in the JSON returned by the graph
-// endpoint. The wire-level type value is currently "lattice" or "electron";
-// in DataRobot terminology these correspond to "pipeline" and "task". The
-// JSON tag is preserved as-is until the server renames the field.
+// GraphNode mirrors PipelineGraphNode from the graph endpoint. IDs are
+// integer indices assigned by Covalent's TransportGraph.
 type GraphNode struct {
-	ID   string `json:"id"`
-	Type string `json:"type"`
-	Name string `json:"name"`
+	ID             int     `json:"id"`
+	Type           string  `json:"type"`
+	Name           string  `json:"name"`
+	Source         *string `json:"source,omitempty"`
+	ResourceBundle any     `json:"resource_bundle,omitempty"`
+	TaskGroupID    any     `json:"task_group_id,omitempty"`
 }
 
-// GraphEdge mirrors an edge entry in the JSON returned by the graph
-// endpoint.
+// GraphEdge mirrors PipelineGraphEdge. Source and Target are integer node IDs.
+// EdgeName, ParamType, and ArgIndex carry Covalent transport metadata.
 type GraphEdge struct {
-	Source string `json:"source"`
-	Target string `json:"target"`
+	Source    int    `json:"source"`
+	Target    int    `json:"target"`
+	EdgeName  string `json:"edge_name,omitempty"`
+	ParamType string `json:"param_type,omitempty"`
+	ArgIndex  int    `json:"arg_index,omitempty"`
 }
 
-// GraphPipeline mirrors the pipeline (formerly "lattice") header entry of
-// the graph payload. JSON tag remains `lattice` while the API wire format
-// is unchanged.
+// GraphPipeline mirrors PipelineGraphLattice — the pipeline header in the
+// graph payload. JSON tag remains `lattice` while the API wire format is
+// unchanged.
 type GraphPipeline struct {
-	ID   string `json:"id"`
-	Name string `json:"name"`
+	Name          string `json:"name"`
+	PythonVersion string `json:"python_version"`
 }
 
 // Graph mirrors the JSON returned by GET /pipelines/{id}/graph and

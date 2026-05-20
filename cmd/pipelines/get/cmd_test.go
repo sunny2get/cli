@@ -51,13 +51,13 @@ func captureStdout(t *testing.T, fn func()) string {
 
 func samplePipeline() pipelines.Pipeline {
 	return pipelines.Pipeline{
-		PipelineID:  "6658f441-a8f5-4f21-b4d8-6cccf4c94c5b",
+		PipelineID:  "683c2a1b4f8e1a2b3c4d5e6f",
 		Name:        "confluence_to_vdb",
 		Description: "test",
 		Mode:        "draft",
 		IsActive:    true,
-		CreatedAt:   time.Date(2026, 4, 28, 11, 42, 28, 0, time.UTC),
-		UpdatedAt:   time.Date(2026, 4, 28, 12, 25, 11, 0, time.UTC),
+		CreatedAt:   pipelines.Time{Time: time.Date(2026, 4, 28, 11, 42, 28, 0, time.UTC)},
+		UpdatedAt:   pipelines.Time{Time: time.Date(2026, 4, 28, 12, 25, 11, 0, time.UTC)},
 		Versions: []pipelines.PipelineVersion{
 			{
 				Version:       1,
@@ -65,7 +65,7 @@ func samplePipeline() pipelines.Pipeline {
 				PipelineName:  "confluence_to_vdb",
 				TaskNames:     []string{"create_vector_database", "ingest_confluence_files"},
 				PythonVersion: "3.12",
-				CreatedAt:     time.Date(2026, 4, 28, 11, 42, 28, 0, time.UTC),
+				CreatedAt:     pipelines.Time{Time: time.Date(2026, 4, 28, 11, 42, 28, 0, time.UTC)},
 			},
 			{
 				Version:       2,
@@ -73,7 +73,7 @@ func samplePipeline() pipelines.Pipeline {
 				PipelineName:  "confluence_to_vdb",
 				PythonVersion: "3.12",
 				ErrorDetail:   "boom",
-				CreatedAt:     time.Date(2026, 4, 28, 12, 25, 11, 0, time.UTC),
+				CreatedAt:     pipelines.Time{Time: time.Date(2026, 4, 28, 12, 25, 11, 0, time.UTC)},
 			},
 		},
 	}

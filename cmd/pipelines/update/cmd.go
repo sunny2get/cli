@@ -48,9 +48,9 @@ or via the --from-file=<path> flag. Exactly one of the two must be provided.
 By default, output is human-readable. Use --output json for machine-parseable output.
 
 Example:
-  dr pipelines update 8a8d6e5e-1234-5678-90ab-cdef01234567 ./my_pipeline.py
-  dr pipelines update 8a8d6e5e-1234-5678-90ab-cdef01234567 --from-file=./my_pipeline.py
-  dr pipelines update 8a8d6e5e-1234-5678-90ab-cdef01234567 --from-file=./my_pipeline.py --output json`,
+  dr pipelines update 507f1f77bcf86cd799439011 ./my_pipeline.py
+  dr pipelines update 507f1f77bcf86cd799439011 --from-file=./my_pipeline.py
+  dr pipelines update 507f1f77bcf86cd799439011 --from-file=./my_pipeline.py --output json`,
 		Args:    cobra.RangeArgs(1, 2),
 		PreRunE: auth.EnsureAuthenticatedE,
 		RunE: func(_ *cobra.Command, args []string) error {

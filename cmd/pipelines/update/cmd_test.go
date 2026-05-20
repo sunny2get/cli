@@ -49,13 +49,13 @@ func captureStdout(t *testing.T, fn func()) string {
 
 func sampleUpdateResponse() pipelines.CreateResponse {
 	return pipelines.CreateResponse{
-		PipelineID: "6658f441-a8f5-4f21-b4d8-6cccf4c94c5b",
+		PipelineID: "683c2a1b4f8e1a2b3c4d5e6f",
 		Name:       "confluence_to_vdb",
 		Version:    2,
 		Status:     "READY",
 		Mode:       "draft",
 		TaskNames:  []string{"create_vector_database"},
-		CreatedAt:  time.Date(2026, 4, 28, 12, 24, 54, 0, time.UTC),
+		CreatedAt:  pipelines.Time{Time: time.Date(2026, 4, 28, 12, 24, 54, 0, time.UTC)},
 	}
 }
 

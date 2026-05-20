@@ -55,7 +55,7 @@ func sample() pipelines.CreateResponse {
 		Status:     "READY",
 		Mode:       "locked",
 		TaskNames:  []string{"e1", "e2"},
-		CreatedAt:  time.Date(2026, 4, 30, 10, 0, 0, 0, time.UTC),
+		CreatedAt:  pipelines.Time{Time: time.Date(2026, 4, 30, 10, 0, 0, 0, time.UTC)},
 	}
 }
 

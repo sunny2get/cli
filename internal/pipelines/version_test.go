@@ -72,8 +72,8 @@ func TestGetGraph_DraftURL(t *testing.T) {
 
 		w.Header().Set("Content-Type", "application/json")
 		_, _ = w.Write([]byte(`{
-			"lattice": {"id":"l-0","name":"wf"},
-			"nodes": [{"id":"l-0","type":"lattice","name":"wf"}],
+			"lattice": {"name":"wf","python_version":"3.12"},
+			"nodes": [{"id":0,"type":"function","name":"wf"}],
 			"edges": []
 		}`))
 	}))
@@ -86,7 +86,7 @@ func TestGetGraph_DraftURL(t *testing.T) {
 	require.NoError(t, err)
 	assert.Equal(t, "wf", got.Pipeline.Name)
 	require.Len(t, got.Nodes, 1)
-	assert.Equal(t, "lattice", got.Nodes[0].Type)
+	assert.Equal(t, "function", got.Nodes[0].Type)
 }
 
 func TestGetGraph_LockedURL(t *testing.T) {
@@ -96,7 +96,7 @@ func TestGetGraph_LockedURL(t *testing.T) {
 		assert.Equal(t, "/api/v2/pipelines/p-1/versions/3/graph", r.URL.Path)
 
 		w.Header().Set("Content-Type", "application/json")
-		_, _ = w.Write([]byte(`{"lattice":{"id":"l-0","name":"wf"},"nodes":[],"edges":[]}`))
+		_, _ = w.Write([]byte(`{"lattice":{"name":"wf","python_version":"3.12"},"nodes":[],"edges":[]}`))
 	}))
 
 	defer srv.Close()

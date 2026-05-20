@@ -55,13 +55,13 @@ func sampleListResponse() pipelines.ListResponse {
 	return pipelines.ListResponse{
 		Items: []pipelines.ListItem{
 			{
-				PipelineID:    "6658f441-a8f5-4f21-b4d8-6cccf4c94c5b",
+				PipelineID:    "683c2a1b4f8e1a2b3c4d5e6f",
 				Name:          "confluence_to_vdb",
 				Mode:          "draft",
 				IsActive:      true,
 				LatestVersion: intPtr(3),
-				CreatedAt:     time.Date(2026, 4, 28, 11, 42, 28, 0, time.UTC),
-				UpdatedAt:     time.Date(2026, 4, 28, 12, 25, 11, 0, time.UTC),
+				CreatedAt:     pipelines.Time{Time: time.Date(2026, 4, 28, 11, 42, 28, 0, time.UTC)},
+				UpdatedAt:     pipelines.Time{Time: time.Date(2026, 4, 28, 12, 25, 11, 0, time.UTC)},
 			},
 		},
 		Total:  1,
@@ -115,7 +115,7 @@ func TestPrintListHuman_RendersHeaderAndRow(t *testing.T) {
 	assert.Contains(t, output, "ACTIVE")
 	assert.Contains(t, output, "VERSION")
 	assert.Contains(t, output, "UPDATED")
-	assert.Contains(t, output, "6658f441-a8f5-4f21-b4d8-6cccf4c94c5b")
+	assert.Contains(t, output, "683c2a1b4f8e1a2b3c4d5e6f")
 	assert.Contains(t, output, "confluence_to_vdb")
 	assert.Contains(t, output, "draft")
 	assert.Contains(t, output, "true")

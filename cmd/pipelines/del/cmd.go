@@ -38,7 +38,7 @@ func Cmd() *cobra.Command {
 removed from the registry.
 
 Example:
-  dr pipelines delete 8a8d6e5e-1234-5678-90ab-cdef01234567`,
+  dr pipelines delete 507f1f77bcf86cd799439011`,
 		Args:         cobra.ExactArgs(1),
 		PreRunE:      auth.EnsureAuthenticatedE,
 		SilenceUsage: true,

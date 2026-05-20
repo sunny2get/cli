@@ -115,7 +115,6 @@ func printGraphJSON(g pipelines.Graph) error {
 
 func printGraphHuman(g pipelines.Graph) {
 	fmt.Println(tui.BaseTextStyle.Render("Pipeline: " + g.Pipeline.Name))
-	fmt.Println(tui.DimStyle.Render("ID:       " + g.Pipeline.ID))
 
 	if len(g.Nodes) == 0 {
 		fmt.Println(tui.DimStyle.Render("No nodes"))
@@ -131,7 +130,7 @@ func printGraphHuman(g pipelines.Graph) {
 	fmt.Fprintln(writer, "  ID\tTYPE\tNAME")
 
 	for _, n := range g.Nodes {
-		fmt.Fprintf(writer, "  %s\t%s\t%s\n", n.ID, n.Type, n.Name)
+		fmt.Fprintf(writer, "  %d\t%s\t%s\n", n.ID, n.Type, n.Name)
 	}
 
 	_ = writer.Flush()
@@ -148,7 +147,7 @@ func printGraphHuman(g pipelines.Graph) {
 	fmt.Fprintln(writer, "  SOURCE\tTARGET")
 
 	for _, e := range g.Edges {
-		fmt.Fprintf(writer, "  %s\t%s\n", e.Source, e.Target)
+		fmt.Fprintf(writer, "  %d\t%d\n", e.Source, e.Target)
 	}
 
 	_ = writer.Flush()

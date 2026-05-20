@@ -120,7 +120,7 @@ dr pipelines create --from-file=<file> [flags]
 
 ```bash
 $ dr pipelines create ./confluence_to_vdb.py --description "test"
-Pipeline ID:  6658f441-a8f5-4f21-b4d8-6cccf4c94c5b
+Pipeline ID:  683c2a1b4f8e1a2b3c4d5e6f
 Name:         confluence_to_vdb
 Version:      1
 Status:       READY
@@ -152,12 +152,12 @@ $ dr pipelines list
 Showing 1 of 1 (offset=0 limit=50)
 
 ID                                    NAME               MODE   ACTIVE  VERSION  UPDATED
-6658f441-a8f5-4f21-b4d8-6cccf4c94c5b  confluence_to_vdb  draft  true    v3       2026-04-28T12:25:11Z
+683c2a1b4f8e1a2b3c4d5e6f  confluence_to_vdb  draft  true    v3       2026-04-28T12:25:11Z
 ```
 
 | Column    | Meaning                                                         |
 |-----------|-----------------------------------------------------------------|
-| `ID`      | Pipeline UUID, used as the argument to `get` / `update` / etc.  |
+| `ID`      | Pipeline ObjectId, used as the argument to `get` / `update` / etc.  |
 | `NAME`    | Pipeline name extracted from the originally uploaded file.     |
 | `MODE`    | `draft` (mutable) or `locked` (immutable).                      |
 | `ACTIVE`  | `true` while the pipeline has not been soft-deleted.            |
@@ -174,7 +174,7 @@ dr pipelines get <pipeline-id> [flags]
 
 **Arguments:**
 
-- `<pipeline-id>` — the UUID returned by `create` / shown in `pipelines list`.
+- `<pipeline-id>` — the ObjectId returned by `create` / shown in `pipelines list`.
 
 **Flags:**
 
@@ -183,8 +183,8 @@ dr pipelines get <pipeline-id> [flags]
 **Example:**
 
 ```bash
-$ dr pipelines get 6658f441-a8f5-4f21-b4d8-6cccf4c94c5b
-ID:          6658f441-a8f5-4f21-b4d8-6cccf4c94c5b
+$ dr pipelines get 683c2a1b4f8e1a2b3c4d5e6f
+ID:          683c2a1b4f8e1a2b3c4d5e6f
 Name:        confluence_to_vdb
 Description: test
 Mode:        draft
@@ -218,7 +218,7 @@ dr pipelines update <pipeline-id> --from-file=<file> [flags]
 
 **Arguments:**
 
-- `<pipeline-id>` — the UUID of the pipeline to update.
+- `<pipeline-id>` — the ObjectId of the pipeline to update.
 - `<file>` — path to the updated `.py` file. Mutually exclusive with
   `--from-file`.
 
@@ -244,13 +244,13 @@ dr pipelines delete <pipeline-id>
 
 **Arguments:**
 
-- `<pipeline-id>` — the UUID of the pipeline to delete.
+- `<pipeline-id>` — the ObjectId of the pipeline to delete.
 
 **Example:**
 
 ```bash
-$ dr pipelines delete 6658f441-a8f5-4f21-b4d8-6cccf4c94c5b
-Deleted pipeline: 6658f441-a8f5-4f21-b4d8-6cccf4c94c5b
+$ dr pipelines delete 683c2a1b4f8e1a2b3c4d5e6f
+Deleted pipeline: 683c2a1b4f8e1a2b3c4d5e6f
 ```
 
 If the pipeline doesn't exist, `delete` prints
@@ -268,7 +268,7 @@ dr pipelines lock <pipeline-id> [flags]
 
 **Arguments:**
 
-- `<pipeline-id>` — the UUID of the pipeline to lock.
+- `<pipeline-id>` — the ObjectId of the pipeline to lock.
 
 **Flags:**
 
@@ -277,8 +277,8 @@ dr pipelines lock <pipeline-id> [flags]
 **Example:**
 
 ```bash
-$ dr pipelines lock 6658f441-a8f5-4f21-b4d8-6cccf4c94c5b
-Pipeline ID:  6658f441-a8f5-4f21-b4d8-6cccf4c94c5b
+$ dr pipelines lock 683c2a1b4f8e1a2b3c4d5e6f
+Pipeline ID:  683c2a1b4f8e1a2b3c4d5e6f
 Name:         confluence_to_vdb
 Mode:         locked
 Version:      v3
@@ -472,12 +472,12 @@ scenarios.
 ## Local development
 
 While iterating against a locally running pipelines-api (default port
-`8000`), point the CLI at `http://localhost:8000` and bypass token
+`8100`), point the CLI at `http://localhost:8100` and bypass token
 verification using the prefixed environment variables:
 
 ```bash
 export DATAROBOT_CLI_FEATURE_PIPELINES=true
-export DATAROBOT_CLI_ENDPOINT=http://localhost:8000/api/v2
+export DATAROBOT_CLI_ENDPOINT=http://localhost:8100/api/v2
 export DATAROBOT_CLI_TOKEN=local
 export DATAROBOT_CLI_SKIP_AUTH=true
 

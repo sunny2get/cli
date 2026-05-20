@@ -43,8 +43,8 @@ func Cmd() *cobra.Command {
 By default, output is human-readable. Use --output json for machine-parseable output.
 
 Example:
-  dr pipelines get 8a8d6e5e-1234-5678-90ab-cdef01234567
-  dr pipelines get 8a8d6e5e-1234-5678-90ab-cdef01234567 --output json`,
+  dr pipelines get 507f1f77bcf86cd799439011
+  dr pipelines get 507f1f77bcf86cd799439011 --output json`,
 		Args:         cobra.ExactArgs(1),
 		PreRunE:      auth.EnsureAuthenticatedE,
 		SilenceUsage: true,

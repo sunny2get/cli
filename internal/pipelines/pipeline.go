@@ -56,7 +56,7 @@ type PipelineVersion struct {
 	PythonVersion  string         `json:"python_version"`
 	ResourceBundle map[string]any `json:"resource_bundle,omitempty"`
 	ErrorDetail    string         `json:"error_detail,omitempty"`
-	CreatedAt      time.Time      `json:"created_at"`
+	CreatedAt      Time           `json:"created_at"`
 }
 
 // Pipeline mirrors PipelineDetailResponse from the pipelines-api.
@@ -66,8 +66,8 @@ type Pipeline struct {
 	Description string            `json:"description,omitempty"`
 	Mode        string            `json:"mode"`
 	IsActive    bool              `json:"is_active"`
-	CreatedAt   time.Time         `json:"created_at"`
-	UpdatedAt   time.Time         `json:"updated_at"`
+	CreatedAt   Time              `json:"created_at"`
+	UpdatedAt   Time              `json:"updated_at"`
 	Versions    []PipelineVersion `json:"versions"`
 }
 
@@ -83,7 +83,7 @@ type CreateResponse struct {
 	Status     string    `json:"status"`
 	Mode       string    `json:"mode"`
 	TaskNames  []string  `json:"electron_names,omitempty"`
-	CreatedAt  time.Time `json:"created_at"`
+	CreatedAt  Time      `json:"created_at"`
 }
 
 // ListItem mirrors PipelineListItem from the pipelines-api.
@@ -94,8 +94,8 @@ type ListItem struct {
 	Mode          string    `json:"mode"`
 	IsActive      bool      `json:"is_active"`
 	LatestVersion *int      `json:"latest_version,omitempty"`
-	CreatedAt     time.Time `json:"created_at"`
-	UpdatedAt     time.Time `json:"updated_at"`
+	CreatedAt     Time      `json:"created_at"`
+	UpdatedAt     Time      `json:"updated_at"`
 }
 
 // ListResponse mirrors PipelineListResponse from the pipelines-api.

@@ -37,8 +37,8 @@ func Cmd() *cobra.Command {
 no longer be updated and locked runs/inputs/schedules become valid.
 
 Example:
-  dr pipelines lock 8a8d6e5e-1234-5678-90ab-cdef01234567
-  dr pipelines lock 8a8d6e5e-1234-5678-90ab-cdef01234567 --output json`,
+  dr pipelines lock 507f1f77bcf86cd799439011
+  dr pipelines lock 507f1f77bcf86cd799439011 --output json`,
 		Args:         cobra.ExactArgs(1),
 		PreRunE:      auth.EnsureAuthenticatedE,
 		SilenceUsage: true,

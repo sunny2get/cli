@@ -54,7 +54,7 @@ func sampleVersion() pipelines.PipelineVersion {
 		PipelineName:  "wf",
 		TaskNames:     []string{"e1", "e2"},
 		PythonVersion: "3.12",
-		CreatedAt:     time.Date(2026, 4, 29, 10, 0, 0, 0, time.UTC),
+		CreatedAt:     pipelines.Time{Time: time.Date(2026, 4, 29, 10, 0, 0, 0, time.UTC)},
 	}
 }
 
