@@ -156,7 +156,7 @@ tasks:
       - ./smoke_test_scripts/run_smoke_test.sh {{if .DR_API_TOKEN}}{{.DR_API_TOKEN}}{{else}}$DR_API_TOKEN{{end}}
 
   demo-pipelines:
-    desc: "End-to-end demo of every dr pipelines command (40 steps incl. environment lifecycle). Defaults to interactive (keypress per step); pass DELAY=N or `-- --delay=N` for auto-advance."
+    desc: "End-to-end demo of every dr pipelines command. Defaults to interactive (keypress per step); pass DELAY=N or `-- --delay=N` for auto-advance. Set SKIP_SCHEDULES=true or SKIP_ENVIRONMENTS=true to skip steps that require k8s/Covalent."
     deps: [build]
     vars:
       DEMO_DIR: '{{default "/Users/sunnypal.sharma/Desktop/tests/pipelines-api" .DEMO_DIR}}'
@@ -166,6 +166,8 @@ tasks:
       DATAROBOT_CLI_ENDPOINT: "http://localhost:8100/api/v2"
       DATAROBOT_CLI_TOKEN: "local"
       DATAROBOT_CLI_SKIP_AUTH: "true"
+      DEMO_SKIP_SCHEDULES: '{{if .SKIP_SCHEDULES}}true{{else}}false{{end}}'
+      DEMO_SKIP_ENVIRONMENTS: '{{if .SKIP_ENVIRONMENTS}}true{{else}}false{{end}}'
     cmds:
       - DR_BIN="$PWD/dist/dr" DEMO_DIR="{{.DEMO_DIR}}" bash "{{.DEMO_DIR}}/demo.sh" {{.DELAY_FLAG}} {{.CLI_ARGS}}
 
