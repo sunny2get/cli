@@ -20,6 +20,7 @@ import (
 	"io"
 	"os"
 	"testing"
+	"time"
 
 	"github.com/datarobot/cli/internal/pipelines"
 	"github.com/stretchr/testify/assert"
@@ -54,8 +55,8 @@ func sampleSchedule() pipelines.Schedule {
 		CronExpression: "0 * * * *",
 		Timezone:       "UTC",
 		Status:         pipelines.ScheduleStatusActive,
-		CreatedAt:      "2026-04-29T10:00:00Z",
-		UpdatedAt:      "2026-04-29T11:00:00Z",
+		CreatedAt:      time.Date(2026, 4, 29, 10, 0, 0, 0, time.UTC),
+		UpdatedAt:      time.Date(2026, 4, 29, 11, 0, 0, 0, time.UTC),
 	}
 }
 
@@ -103,7 +104,7 @@ func TestPrintScheduleListHuman_RendersTable(t *testing.T) {
 		PrintScheduleListHuman([]pipelines.Schedule{sampleSchedule()})
 	})
 
-	assert.Contains(t, output, "SCHEDULE_ID")
+	assert.Contains(t, output, "SCHEDULE")
 	assert.Contains(t, output, "VERSION")
 	assert.Contains(t, output, "CRON")
 	assert.Contains(t, output, "TIMEZONE")

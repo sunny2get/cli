@@ -16,8 +16,8 @@ package create
 
 import (
 	"errors"
-	"fmt"
 
+	"github.com/datarobot/cli/cmd/pipelines/outputfmt"
 	"github.com/datarobot/cli/cmd/pipelines/schedule/scheduleutil"
 	"github.com/datarobot/cli/internal/auth"
 	"github.com/datarobot/cli/internal/pipelines"
@@ -31,7 +31,7 @@ func Cmd() *cobra.Command {
 		cron         string
 		inputID      string
 		timezone     string
-		outputFormat string
+		outputFormat outputfmt.OutputFormat
 	)
 
 	cmd := &cobra.Command{
@@ -46,10 +46,6 @@ Example:
 		PreRunE:      auth.EnsureAuthenticatedE,
 		SilenceUsage: true,
 		RunE: func(_ *cobra.Command, _ []string) error {
-			if outputFormat != "" && outputFormat != "json" {
-				return fmt.Errorf("invalid output format: %s (supported: json)", outputFormat)
-			}
-
 			if pipelineID == "" {
 				return errors.New("--pipeline is required")
 			}
@@ -77,13 +73,7 @@ Example:
 				return err
 			}
 
-			if outputFormat == "json" {
-				return scheduleutil.PrintScheduleJSON(*result)
-			}
-
-			scheduleutil.PrintScheduleHuman(*result)
-
-			return nil
+			return scheduleutil.RenderSchedule(outputFormat, *result)
 		},
 	}
 
@@ -92,7 +82,7 @@ Example:
 	cmd.Flags().StringVar(&cron, "cron", "", "Cron expression, e.g. \"0 * * * *\"")
 	cmd.Flags().StringVar(&inputID, "input", "", "Input ID to run on each tick")
 	cmd.Flags().StringVar(&timezone, "timezone", "", "IANA timezone name (default UTC)")
-	cmd.Flags().StringVar(&outputFormat, "output", "", "Output format (json)")
+	outputfmt.AddOutputFlag(cmd, &outputFormat)
 
 	return cmd
 }

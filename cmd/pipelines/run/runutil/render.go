@@ -22,15 +22,24 @@ import (
 	"encoding/json"
 	"fmt"
 	"os"
+	"slices"
 	"strconv"
 	"text/tabwriter"
 	"time"
 
+	"github.com/charmbracelet/lipgloss"
+	"github.com/charmbracelet/lipgloss/table"
+	"github.com/datarobot/cli/cmd/pipelines/outputfmt"
 	"github.com/datarobot/cli/internal/pipelines"
 	"github.com/datarobot/cli/tui"
 )
 
-// runJSON is the CLI-facing shape used for `--output json`. It mirrors
+const (
+	timestampFormat       = "2006-01-02 15:04 UTC"
+	emptyValuePlaceholder = "—"
+)
+
+// runJSON is the CLI-facing shape used for `--output-format json`. It mirrors
 // pipelines.Run but renames the wire-level fields to the CLI's `run`
 // vocabulary (`run_id`, `covalent_run_id`). Decoding still happens
 // through pipelines.Run, which keeps the API wire tags intact.
@@ -77,6 +86,39 @@ func toRunStatusJSON(s pipelines.RunStatus) runStatusJSON {
 	}
 }
 
+// RenderRun routes a single run to JSON or human output.
+func RenderRun(format outputfmt.OutputFormat, r pipelines.Run) error {
+	if format == outputfmt.OutputFormatJSON {
+		return PrintRunJSON(r)
+	}
+
+	PrintRunHuman(r)
+
+	return nil
+}
+
+// RenderRuns routes a list of runs to JSON or human output.
+func RenderRuns(format outputfmt.OutputFormat, items []pipelines.Run) error {
+	if format == outputfmt.OutputFormatJSON {
+		return PrintRunListJSON(items)
+	}
+
+	PrintRunListHuman(items)
+
+	return nil
+}
+
+// RenderRunStatus routes a run status to JSON or human output.
+func RenderRunStatus(format outputfmt.OutputFormat, s pipelines.RunStatus) error {
+	if format == outputfmt.OutputFormatJSON {
+		return PrintStatusJSON(s)
+	}
+
+	PrintStatusHuman(s)
+
+	return nil
+}
+
 // PrintRunJSON marshals a run as indented JSON using CLI-vocabulary keys.
 func PrintRunJSON(r pipelines.Run) error {
 	data, err := json.MarshalIndent(toRunJSON(r), "", "  ")
@@ -92,7 +134,7 @@ func PrintRunJSON(r pipelines.Run) error {
 // PrintRunHuman renders a single run in a human-friendly form.
 func PrintRunHuman(r pipelines.Run) {
 	scope := "draft"
-	versionDisplay := "\u2014"
+	versionDisplay := emptyValuePlaceholder
 
 	if r.VersionID != nil {
 		scope = "locked"
@@ -101,30 +143,35 @@ func PrintRunHuman(r pipelines.Run) {
 
 	covalent := r.CovalentDispatchID
 	if covalent == "" {
-		covalent = "\u2014"
+		covalent = emptyValuePlaceholder
 	}
 
-	fmt.Println(tui.BaseTextStyle.Render("Run ID:        " + r.RunID))
-	fmt.Println(tui.BaseTextStyle.Render("Pipeline ID:   " + r.PipelineID))
-	fmt.Println(tui.BaseTextStyle.Render("Scope:         " + scope))
-	fmt.Println(tui.BaseTextStyle.Render("Version:       " + versionDisplay))
-	fmt.Println(tui.BaseTextStyle.Render("Input ID:      " + r.InputID))
-	fmt.Println(tui.BaseTextStyle.Render("Status:        " + r.Status))
-	fmt.Println(tui.BaseTextStyle.Render("Triggered By:  " + r.TriggeredBy))
-	fmt.Println(tui.BaseTextStyle.Render("Covalent Run:  " + covalent))
+	w := tabwriter.NewWriter(os.Stdout, 0, 0, 2, ' ', 0)
+
+	fmt.Fprintf(w, "Run ID:\t%s\n", r.RunID)
+	fmt.Fprintf(w, "Pipeline ID:\t%s\n", r.PipelineID)
+	fmt.Fprintf(w, "Scope:\t%s\n", scope)
+	fmt.Fprintf(w, "Version:\t%s\n", versionDisplay)
+	fmt.Fprintf(w, "Input ID:\t%s\n", r.InputID)
+	fmt.Fprintf(w, "Status:\t%s\n", r.Status)
+	fmt.Fprintf(w, "Triggered By:\t%s\n", r.TriggeredBy)
+	fmt.Fprintf(w, "Covalent Run:\t%s\n", covalent)
 
 	if r.ErrorDetail != "" {
-		fmt.Println(tui.BaseTextStyle.Render("Error:         " + r.ErrorDetail))
+		fmt.Fprintf(w, "Error:\t%s\n", r.ErrorDetail)
 	}
 
-	fmt.Println(tui.DimStyle.Render("Created:       " + r.CreatedAt.UTC().Format(time.RFC3339)))
-	fmt.Println(tui.DimStyle.Render("Updated:       " + r.UpdatedAt.UTC().Format(time.RFC3339)))
+	fmt.Fprintf(w, "Created:\t%s\n", r.CreatedAt.UTC().Format(timestampFormat))
+	fmt.Fprintf(w, "Updated:\t%s\n", r.UpdatedAt.UTC().Format(timestampFormat))
+
+	w.Flush()
 }
 
 // PrintRunListJSON marshals a list of runs as indented JSON using
 // CLI-vocabulary keys.
 func PrintRunListJSON(items []pipelines.Run) error {
 	view := make([]runJSON, len(items))
+
 	for i, r := range items {
 		view[i] = toRunJSON(r)
 	}
@@ -139,7 +186,7 @@ func PrintRunListJSON(items []pipelines.Run) error {
 	return nil
 }
 
-// PrintRunListHuman renders a tabular summary of runs.
+// PrintRunListHuman renders a lipgloss table summary of runs.
 func PrintRunListHuman(items []pipelines.Run) {
 	if len(items) == 0 {
 		fmt.Println(tui.DimStyle.Render("No runs found"))
@@ -147,25 +194,43 @@ func PrintRunListHuman(items []pipelines.Run) {
 		return
 	}
 
-	writer := tabwriter.NewWriter(os.Stdout, 0, 0, 2, ' ', 0)
+	cellStyle := tui.BaseTextStyle.Padding(0, 1)
 
-	fmt.Fprintln(writer, "RUN_ID\tSCOPE\tVERSION\tSTATUS\tTRIGGER\tUPDATED")
+	dimStyle := tui.DimStyle.Padding(0, 1)
+
+	headers := []string{"RUN ID", "SCOPE", "VERSION", "STATUS", "TRIGGER", "UPDATED"}
+
+	updatedCol := slices.Index(headers, "UPDATED")
+
+	t := table.New().
+		Border(lipgloss.RoundedBorder()).
+		BorderStyle(tui.TableBorderStyle).
+		StyleFunc(func(row, col int) lipgloss.Style {
+			if row == table.HeaderRow {
+				return cellStyle.Bold(true)
+			}
+
+			if col == updatedCol {
+				return dimStyle
+			}
+
+			return cellStyle
+		}).
+		Headers(headers...)
 
 	for _, r := range items {
 		scope := "draft"
-		ver := "\u2014"
+		ver := emptyValuePlaceholder
 
 		if r.VersionID != nil {
 			scope = "locked"
 			ver = "v" + strconv.Itoa(*r.VersionID)
 		}
 
-		fmt.Fprintf(writer, "%s\t%s\t%s\t%s\t%s\t%s\n",
-			r.RunID, scope, ver, r.Status, r.TriggeredBy, r.UpdatedAt.UTC().Format(time.RFC3339),
-		)
+		t.Row(r.RunID, scope, ver, r.Status, r.TriggeredBy, r.UpdatedAt.UTC().Format(timestampFormat))
 	}
 
-	_ = writer.Flush()
+	fmt.Fprintln(os.Stdout, t.Render())
 }
 
 // PrintStatusJSON marshals a lightweight status response as indented JSON
@@ -185,10 +250,14 @@ func PrintStatusJSON(s pipelines.RunStatus) error {
 func PrintStatusHuman(s pipelines.RunStatus) {
 	covalent := s.CovalentDispatchID
 	if covalent == "" {
-		covalent = "\u2014"
+		covalent = emptyValuePlaceholder
 	}
 
-	fmt.Println(tui.BaseTextStyle.Render("Run ID:        " + s.RunID))
-	fmt.Println(tui.BaseTextStyle.Render("Status:        " + s.Status))
-	fmt.Println(tui.BaseTextStyle.Render("Covalent Run:  " + covalent))
+	w := tabwriter.NewWriter(os.Stdout, 0, 0, 2, ' ', 0)
+
+	fmt.Fprintf(w, "Run ID:\t%s\n", s.RunID)
+	fmt.Fprintf(w, "Status:\t%s\n", s.Status)
+	fmt.Fprintf(w, "Covalent Run:\t%s\n", covalent)
+
+	w.Flush()
 }

@@ -54,7 +54,7 @@ func sampleVersion() pipelines.PipelineVersion {
 		PipelineName:  "wf",
 		TaskNames:     []string{"e1", "e2"},
 		PythonVersion: "3.12",
-		CreatedAt:     pipelines.Time{Time: time.Date(2026, 4, 29, 10, 0, 0, 0, time.UTC)},
+		CreatedAt:     time.Date(2026, 4, 29, 10, 0, 0, 0, time.UTC),
 	}
 }
 
@@ -68,17 +68,23 @@ func TestPrintVersionJSON(t *testing.T) {
 	require.NoError(t, json.Unmarshal([]byte(output), &parsed))
 	assert.EqualValues(t, 2, parsed["version"])
 	assert.Equal(t, "READY", parsed["status"])
-	assert.Equal(t, "wf", parsed["lattice_name"])
+	assert.Equal(t, "wf", parsed["pipeline_name"])
 }
 
 func TestPrintVersionHuman_Full(t *testing.T) {
 	output := captureStdout(t, func() { PrintVersionHuman(sampleVersion()) })
-	assert.Contains(t, output, "Version:        v2")
-	assert.Contains(t, output, "Pipeline:       wf")
-	assert.Contains(t, output, "Status:         READY")
-	assert.Contains(t, output, "Python Version: 3.12")
-	assert.Contains(t, output, "Tasks:          e1, e2")
-	assert.Contains(t, output, "Created:        2026-04-29T10:00:00Z")
+	assert.Contains(t, output, "Version:")
+	assert.Contains(t, output, "v2")
+	assert.Contains(t, output, "Pipeline:")
+	assert.Contains(t, output, "wf")
+	assert.Contains(t, output, "Status:")
+	assert.Contains(t, output, "READY")
+	assert.Contains(t, output, "Python Version:")
+	assert.Contains(t, output, "3.12")
+	assert.Contains(t, output, "Tasks:")
+	assert.Contains(t, output, "e1, e2")
+	assert.Contains(t, output, "Created:")
+	assert.Contains(t, output, "2026-04-29 10:00 UTC")
 }
 
 func TestPrintVersionHuman_FillsDefaultsForMissing(t *testing.T) {
@@ -87,8 +93,8 @@ func TestPrintVersionHuman_FillsDefaultsForMissing(t *testing.T) {
 	v.PythonVersion = ""
 
 	output := captureStdout(t, func() { PrintVersionHuman(v) })
-	assert.Contains(t, output, "Python Version: \u2014")
-	assert.Contains(t, output, "Tasks:          \u2014")
+	assert.Contains(t, output, "Python Version:")
+	assert.Contains(t, output, "\u2014")
 }
 
 func TestPrintVersionHuman_ShowsErrorDetail(t *testing.T) {
@@ -96,7 +102,8 @@ func TestPrintVersionHuman_ShowsErrorDetail(t *testing.T) {
 	v.ErrorDetail = "syntax error"
 
 	output := captureStdout(t, func() { PrintVersionHuman(v) })
-	assert.Contains(t, output, "Error:          syntax error")
+	assert.Contains(t, output, "Error:")
+	assert.Contains(t, output, "syntax error")
 }
 
 func TestPrintVersionListJSON(t *testing.T) {

@@ -21,17 +21,83 @@ import (
 	"encoding/json"
 	"fmt"
 	"os"
+	"slices"
 	"strconv"
 	"text/tabwriter"
 	"time"
 
+	"github.com/charmbracelet/lipgloss"
+	"github.com/charmbracelet/lipgloss/table"
+	"github.com/datarobot/cli/cmd/pipelines/outputfmt"
 	"github.com/datarobot/cli/internal/pipelines"
 	"github.com/datarobot/cli/tui"
 )
 
-// PrintInputJSON marshals an input record as indented JSON.
+const (
+	timestampFormat       = "2006-01-02 15:04 UTC"
+	emptyValuePlaceholder = "—"
+)
+
+// inputJSON is the CLI-facing DTO used for `--output-format json`.
+type inputJSON struct {
+	InputID    string          `json:"input_id"`
+	PipelineID string          `json:"pipeline_id"`
+	Scope      string          `json:"scope"`
+	Version    string          `json:"version"`
+	State      string          `json:"state"`
+	Payload    json.RawMessage `json:"payload"`
+	CreatedAt  string          `json:"created_at"`
+	UpdatedAt  string          `json:"updated_at"`
+}
+
+func toInputJSON(input pipelines.Input) inputJSON {
+	scope := "draft"
+	version := emptyValuePlaceholder
+
+	if input.VersionID != nil {
+		scope = "locked"
+		version = "v" + strconv.Itoa(*input.VersionID)
+	}
+
+	payloadBytes, _ := json.Marshal(input.Payload)
+
+	return inputJSON{
+		InputID:    input.InputID,
+		PipelineID: input.PipelineID,
+		Scope:      scope,
+		Version:    version,
+		State:      string(input.State),
+		Payload:    payloadBytes,
+		CreatedAt:  input.CreatedAt.UTC().Format(time.RFC3339),
+		UpdatedAt:  input.UpdatedAt.UTC().Format(time.RFC3339),
+	}
+}
+
+// RenderInput routes a single input to JSON or human output.
+func RenderInput(format outputfmt.OutputFormat, input pipelines.Input) error {
+	if format == outputfmt.OutputFormatJSON {
+		return PrintInputJSON(input)
+	}
+
+	PrintInputHuman(input)
+
+	return nil
+}
+
+// RenderInputs routes a list of inputs to JSON or human output.
+func RenderInputs(format outputfmt.OutputFormat, inputs []pipelines.Input) error {
+	if format == outputfmt.OutputFormatJSON {
+		return PrintInputListJSON(inputs)
+	}
+
+	PrintInputListHuman(inputs)
+
+	return nil
+}
+
+// PrintInputJSON marshals an input record as indented JSON through the DTO.
 func PrintInputJSON(input pipelines.Input) error {
-	data, err := json.MarshalIndent(input, "", "  ")
+	data, err := json.MarshalIndent(toInputJSON(input), "", "  ")
 	if err != nil {
 		return err
 	}
@@ -44,20 +110,24 @@ func PrintInputJSON(input pipelines.Input) error {
 // PrintInputHuman renders the key facts about a single input record.
 func PrintInputHuman(input pipelines.Input) {
 	scope := "draft"
-	versionDisplay := "\u2014"
+	versionDisplay := emptyValuePlaceholder
 
 	if input.VersionID != nil {
 		scope = "locked"
 		versionDisplay = "v" + strconv.Itoa(*input.VersionID)
 	}
 
-	fmt.Println(tui.BaseTextStyle.Render("Input ID:    " + input.InputID))
-	fmt.Println(tui.BaseTextStyle.Render("Pipeline ID: " + input.PipelineID))
-	fmt.Println(tui.BaseTextStyle.Render("Scope:       " + scope))
-	fmt.Println(tui.BaseTextStyle.Render("Version:     " + versionDisplay))
-	fmt.Println(tui.BaseTextStyle.Render("State:       " + string(input.State)))
-	fmt.Println(tui.DimStyle.Render("Created:     " + input.CreatedAt.UTC().Format(time.RFC3339)))
-	fmt.Println(tui.DimStyle.Render("Updated:     " + input.UpdatedAt.UTC().Format(time.RFC3339)))
+	w := tabwriter.NewWriter(os.Stdout, 0, 0, 2, ' ', 0)
+
+	fmt.Fprintf(w, "Input ID:\t%s\n", input.InputID)
+	fmt.Fprintf(w, "Pipeline ID:\t%s\n", input.PipelineID)
+	fmt.Fprintf(w, "Scope:\t%s\n", scope)
+	fmt.Fprintf(w, "Version:\t%s\n", versionDisplay)
+	fmt.Fprintf(w, "State:\t%s\n", string(input.State))
+	fmt.Fprintf(w, "Created:\t%s\n", input.CreatedAt.UTC().Format(timestampFormat))
+	fmt.Fprintf(w, "Updated:\t%s\n", input.UpdatedAt.UTC().Format(timestampFormat))
+
+	w.Flush()
 
 	payload, err := json.MarshalIndent(input.Payload, "", "  ")
 	if err != nil {
@@ -69,9 +139,15 @@ func PrintInputHuman(input pipelines.Input) {
 	fmt.Println(string(payload))
 }
 
-// PrintInputListJSON marshals a list of inputs as indented JSON.
+// PrintInputListJSON marshals a list of inputs as indented JSON through the DTO.
 func PrintInputListJSON(inputs []pipelines.Input) error {
-	data, err := json.MarshalIndent(inputs, "", "  ")
+	view := make([]inputJSON, len(inputs))
+
+	for i, in := range inputs {
+		view[i] = toInputJSON(in)
+	}
+
+	data, err := json.MarshalIndent(view, "", "  ")
 	if err != nil {
 		return err
 	}
@@ -81,7 +157,7 @@ func PrintInputListJSON(inputs []pipelines.Input) error {
 	return nil
 }
 
-// PrintInputListHuman renders a tabular summary of inputs.
+// PrintInputListHuman renders a lipgloss table summary of inputs.
 func PrintInputListHuman(inputs []pipelines.Input) {
 	if len(inputs) == 0 {
 		fmt.Println(tui.DimStyle.Render("No inputs found"))
@@ -89,23 +165,41 @@ func PrintInputListHuman(inputs []pipelines.Input) {
 		return
 	}
 
-	writer := tabwriter.NewWriter(os.Stdout, 0, 0, 2, ' ', 0)
+	cellStyle := tui.BaseTextStyle.Padding(0, 1)
 
-	fmt.Fprintln(writer, "INPUT_ID\tSCOPE\tVERSION\tSTATE\tUPDATED")
+	dimStyle := tui.DimStyle.Padding(0, 1)
+
+	headers := []string{"INPUT ID", "SCOPE", "VERSION", "STATE", "UPDATED"}
+
+	updatedCol := slices.Index(headers, "UPDATED")
+
+	t := table.New().
+		Border(lipgloss.RoundedBorder()).
+		BorderStyle(tui.TableBorderStyle).
+		StyleFunc(func(row, col int) lipgloss.Style {
+			if row == table.HeaderRow {
+				return cellStyle.Bold(true)
+			}
+
+			if col == updatedCol {
+				return dimStyle
+			}
+
+			return cellStyle
+		}).
+		Headers(headers...)
 
 	for _, in := range inputs {
 		scope := "draft"
-		ver := "\u2014"
+		ver := emptyValuePlaceholder
 
 		if in.VersionID != nil {
 			scope = "locked"
 			ver = "v" + strconv.Itoa(*in.VersionID)
 		}
 
-		fmt.Fprintf(writer, "%s\t%s\t%s\t%s\t%s\n",
-			in.InputID, scope, ver, in.State, in.UpdatedAt.UTC().Format(time.RFC3339),
-		)
+		t.Row(in.InputID, scope, ver, string(in.State), in.UpdatedAt.UTC().Format(timestampFormat))
 	}
 
-	_ = writer.Flush()
+	fmt.Fprintln(os.Stdout, t.Render())
 }

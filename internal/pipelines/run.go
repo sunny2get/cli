@@ -44,14 +44,14 @@ const (
 // (`dispatch_id`, `covalent_dispatch_id`) track the current API wire
 // format, which has not been renamed to "run" yet.
 type Run struct {
-	RunID              string `json:"dispatch_id"`
-	PipelineID         string `json:"pipeline_id"`
-	VersionID          *int   `json:"version_id,omitempty"`
-	InputID            string `json:"input_id"`
-	CovalentDispatchID string `json:"covalent_dispatch_id,omitempty"`
-	TriggeredBy        string `json:"triggered_by"`
-	Status             string `json:"status"`
-	ErrorDetail        string `json:"error_detail,omitempty"`
+	RunID              string    `json:"dispatch_id"`
+	PipelineID         string    `json:"pipeline_id"`
+	VersionID          *int      `json:"version_id,omitempty"`
+	InputID            string    `json:"input_id"`
+	CovalentDispatchID string    `json:"covalent_dispatch_id,omitempty"`
+	TriggeredBy        string    `json:"triggered_by"`
+	Status             string    `json:"status"`
+	ErrorDetail        string    `json:"error_detail,omitempty"`
 	CreatedAt          time.Time `json:"created_at"`
 	UpdatedAt          time.Time `json:"updated_at"`
 }

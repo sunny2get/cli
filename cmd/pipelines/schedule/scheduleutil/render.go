@@ -22,17 +22,72 @@ import (
 	"encoding/json"
 	"fmt"
 	"os"
-	"strconv"
+	"slices"
 	"text/tabwriter"
 	"time"
 
+	"github.com/charmbracelet/lipgloss"
+	"github.com/charmbracelet/lipgloss/table"
+	"github.com/datarobot/cli/cmd/pipelines/outputfmt"
 	"github.com/datarobot/cli/internal/pipelines"
 	"github.com/datarobot/cli/tui"
 )
 
-// PrintScheduleJSON marshals a schedule as indented JSON.
+const (
+	timestampFormat       = "2006-01-02 15:04 UTC"
+	emptyValuePlaceholder = "—"
+)
+
+// scheduleJSON is the CLI-facing DTO used for `--output-format json`.
+type scheduleJSON struct {
+	ScheduleID     string `json:"schedule_id"`
+	PipelineID     string `json:"pipeline_id"`
+	Version        int    `json:"version"`
+	CronExpression string `json:"cron_expression"`
+	Timezone       string `json:"timezone"`
+	Status         string `json:"status"`
+	CreatedAt      string `json:"created_at"`
+	UpdatedAt      string `json:"updated_at"`
+}
+
+func toScheduleJSON(s pipelines.Schedule) scheduleJSON {
+	return scheduleJSON{
+		ScheduleID:     s.ScheduleID,
+		PipelineID:     s.PipelineID,
+		Version:        s.Version,
+		CronExpression: s.CronExpression,
+		Timezone:       s.Timezone,
+		Status:         string(s.Status),
+		CreatedAt:      s.CreatedAt.UTC().Format(time.RFC3339),
+		UpdatedAt:      s.UpdatedAt.UTC().Format(time.RFC3339),
+	}
+}
+
+// RenderSchedule routes a single schedule to JSON or human output.
+func RenderSchedule(format outputfmt.OutputFormat, s pipelines.Schedule) error {
+	if format == outputfmt.OutputFormatJSON {
+		return PrintScheduleJSON(s)
+	}
+
+	PrintScheduleHuman(s)
+
+	return nil
+}
+
+// RenderSchedules routes a list of schedules to JSON or human output.
+func RenderSchedules(format outputfmt.OutputFormat, items []pipelines.Schedule) error {
+	if format == outputfmt.OutputFormatJSON {
+		return PrintScheduleListJSON(items)
+	}
+
+	PrintScheduleListHuman(items)
+
+	return nil
+}
+
+// PrintScheduleJSON marshals a schedule as indented JSON through the DTO.
 func PrintScheduleJSON(s pipelines.Schedule) error {
-	data, err := json.MarshalIndent(s, "", "  ")
+	data, err := json.MarshalIndent(toScheduleJSON(s), "", "  ")
 	if err != nil {
 		return err
 	}
@@ -44,19 +99,29 @@ func PrintScheduleJSON(s pipelines.Schedule) error {
 
 // PrintScheduleHuman renders a single schedule in human-friendly form.
 func PrintScheduleHuman(s pipelines.Schedule) {
-	fmt.Println(tui.BaseTextStyle.Render("Schedule ID:  " + s.ScheduleID))
-	fmt.Println(tui.BaseTextStyle.Render("Pipeline ID:  " + s.PipelineID))
-	fmt.Println(tui.BaseTextStyle.Render("Version:      v" + strconv.Itoa(s.Version)))
-	fmt.Println(tui.BaseTextStyle.Render("Cron:         " + s.CronExpression))
-	fmt.Println(tui.BaseTextStyle.Render("Timezone:     " + s.Timezone))
-	fmt.Println(tui.BaseTextStyle.Render("Status:       " + string(s.Status)))
-	fmt.Println(tui.DimStyle.Render("Created:      " + s.CreatedAt.UTC().Format(time.RFC3339)))
-	fmt.Println(tui.DimStyle.Render("Updated:      " + s.UpdatedAt.UTC().Format(time.RFC3339)))
+	w := tabwriter.NewWriter(os.Stdout, 0, 0, 2, ' ', 0)
+
+	fmt.Fprintf(w, "Schedule ID:\t%s\n", s.ScheduleID)
+	fmt.Fprintf(w, "Pipeline ID:\t%s\n", s.PipelineID)
+	fmt.Fprintf(w, "Version:\tv%d\n", s.Version)
+	fmt.Fprintf(w, "Cron:\t%s\n", s.CronExpression)
+	fmt.Fprintf(w, "Timezone:\t%s\n", s.Timezone)
+	fmt.Fprintf(w, "Status:\t%s\n", string(s.Status))
+	fmt.Fprintf(w, "Created:\t%s\n", s.CreatedAt.UTC().Format(timestampFormat))
+	fmt.Fprintf(w, "Updated:\t%s\n", s.UpdatedAt.UTC().Format(timestampFormat))
+
+	w.Flush()
 }
 
-// PrintScheduleListJSON marshals a list of schedules as indented JSON.
+// PrintScheduleListJSON marshals a list of schedules as indented JSON through the DTO.
 func PrintScheduleListJSON(items []pipelines.Schedule) error {
-	data, err := json.MarshalIndent(items, "", "  ")
+	view := make([]scheduleJSON, len(items))
+
+	for i, s := range items {
+		view[i] = toScheduleJSON(s)
+	}
+
+	data, err := json.MarshalIndent(view, "", "  ")
 	if err != nil {
 		return err
 	}
@@ -66,7 +131,7 @@ func PrintScheduleListJSON(items []pipelines.Schedule) error {
 	return nil
 }
 
-// PrintScheduleListHuman renders a tabular summary of schedules.
+// PrintScheduleListHuman renders a lipgloss table summary of schedules.
 func PrintScheduleListHuman(items []pipelines.Schedule) {
 	if len(items) == 0 {
 		fmt.Println(tui.DimStyle.Render("No schedules found"))
@@ -74,15 +139,40 @@ func PrintScheduleListHuman(items []pipelines.Schedule) {
 		return
 	}
 
-	writer := tabwriter.NewWriter(os.Stdout, 0, 0, 2, ' ', 0)
+	cellStyle := tui.BaseTextStyle.Padding(0, 1)
 
-	fmt.Fprintln(writer, "SCHEDULE_ID\tVERSION\tCRON\tTIMEZONE\tSTATUS\tUPDATED")
+	dimStyle := tui.DimStyle.Padding(0, 1)
+
+	headers := []string{"SCHEDULE ID", "VERSION", "CRON", "TIMEZONE", "STATUS", "UPDATED"}
+
+	updatedCol := slices.Index(headers, "UPDATED")
+
+	t := table.New().
+		Border(lipgloss.RoundedBorder()).
+		BorderStyle(tui.TableBorderStyle).
+		StyleFunc(func(row, col int) lipgloss.Style {
+			if row == table.HeaderRow {
+				return cellStyle.Bold(true)
+			}
+
+			if col == updatedCol {
+				return dimStyle
+			}
+
+			return cellStyle
+		}).
+		Headers(headers...)
 
 	for _, s := range items {
-		fmt.Fprintf(writer, "%s\tv%d\t%s\t%s\t%s\t%s\n",
-			s.ScheduleID, s.Version, s.CronExpression, s.Timezone, s.Status, s.UpdatedAt.UTC().Format(time.RFC3339),
+		t.Row(
+			s.ScheduleID,
+			fmt.Sprintf("v%d", s.Version),
+			s.CronExpression,
+			s.Timezone,
+			string(s.Status),
+			s.UpdatedAt.UTC().Format(timestampFormat),
 		)
 	}
 
-	_ = writer.Flush()
+	fmt.Fprintln(os.Stdout, t.Render())
 }

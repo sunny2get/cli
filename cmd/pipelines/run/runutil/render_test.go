@@ -20,6 +20,7 @@ import (
 	"io"
 	"os"
 	"testing"
+	"time"
 
 	"github.com/datarobot/cli/internal/pipelines"
 	"github.com/stretchr/testify/assert"
@@ -55,8 +56,8 @@ func sampleDraftRun() pipelines.Run {
 		InputID:     "in-1",
 		TriggeredBy: "user@example.com",
 		Status:      pipelines.RunStatusPending,
-		CreatedAt:   "2026-04-29T10:00:00Z",
-		UpdatedAt:   "2026-04-29T10:00:00Z",
+		CreatedAt:   time.Date(2026, 4, 29, 10, 0, 0, 0, time.UTC),
+		UpdatedAt:   time.Date(2026, 4, 29, 10, 0, 0, 0, time.UTC),
 	}
 }
 
@@ -85,11 +86,15 @@ func TestPrintRunJSON(t *testing.T) {
 
 func TestPrintRunHuman_DraftMissingCovalent(t *testing.T) {
 	output := captureStdout(t, func() { PrintRunHuman(sampleDraftRun()) })
-	assert.Contains(t, output, "Run ID:        d-1")
-	assert.Contains(t, output, "Scope:         draft")
-	assert.Contains(t, output, "Version:       \u2014")
-	assert.Contains(t, output, "Covalent Run:  \u2014")
-	assert.Contains(t, output, "Status:        PENDING")
+	assert.Contains(t, output, "Run ID:")
+	assert.Contains(t, output, "d-1")
+	assert.Contains(t, output, "Scope:")
+	assert.Contains(t, output, "draft")
+	assert.Contains(t, output, "Version:")
+	assert.Contains(t, output, "\u2014")
+	assert.Contains(t, output, "Covalent Run:")
+	assert.Contains(t, output, "Status:")
+	assert.Contains(t, output, "PENDING")
 }
 
 func TestPrintRunHuman_LockedShowsErrorWhenSet(t *testing.T) {
@@ -98,10 +103,10 @@ func TestPrintRunHuman_LockedShowsErrorWhenSet(t *testing.T) {
 	r.ErrorDetail = "boom"
 
 	output := captureStdout(t, func() { PrintRunHuman(r) })
-	assert.Contains(t, output, "Scope:         locked")
-	assert.Contains(t, output, "Version:       v3")
-	assert.Contains(t, output, "Covalent Run:  cov-xyz")
-	assert.Contains(t, output, "Error:         boom")
+	assert.Contains(t, output, "locked")
+	assert.Contains(t, output, "v3")
+	assert.Contains(t, output, "cov-xyz")
+	assert.Contains(t, output, "boom")
 }
 
 func TestPrintRunListJSON(t *testing.T) {
@@ -126,7 +131,7 @@ func TestPrintRunListHuman_RendersTable(t *testing.T) {
 		PrintRunListHuman([]pipelines.Run{sampleDraftRun(), sampleLockedRun()})
 	})
 
-	assert.Contains(t, output, "RUN_ID")
+	assert.Contains(t, output, "RUN")
 	assert.Contains(t, output, "STATUS")
 	assert.Contains(t, output, "TRIGGER")
 	assert.Contains(t, output, "draft")
@@ -160,7 +165,10 @@ func TestPrintStatusHuman_NoCovalentRunID(t *testing.T) {
 		PrintStatusHuman(pipelines.RunStatus{RunID: "d-1", Status: "PENDING"})
 	})
 
-	assert.Contains(t, output, "Run ID:        d-1")
-	assert.Contains(t, output, "Status:        PENDING")
-	assert.Contains(t, output, "Covalent Run:  \u2014")
+	assert.Contains(t, output, "Run ID:")
+	assert.Contains(t, output, "d-1")
+	assert.Contains(t, output, "Status:")
+	assert.Contains(t, output, "PENDING")
+	assert.Contains(t, output, "Covalent Run:")
+	assert.Contains(t, output, "\u2014")
 }

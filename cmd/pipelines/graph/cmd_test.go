@@ -123,7 +123,7 @@ func TestCmd_RejectsMissingPipeline(t *testing.T) {
 
 func TestCmd_RejectsBadOutput(t *testing.T) {
 	cmd := Cmd()
-	cmd.SetArgs([]string{"--pipeline", "p", "--output", "yaml"})
+	cmd.SetArgs([]string{"--pipeline", "p", "--output-format", "yaml"})
 	cmd.SetOut(io.Discard)
 	cmd.SetErr(io.Discard)
 	cmd.PreRunE = nil

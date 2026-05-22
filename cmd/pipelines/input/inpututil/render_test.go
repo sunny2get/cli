@@ -20,6 +20,7 @@ import (
 	"io"
 	"os"
 	"testing"
+	"time"
 
 	"github.com/datarobot/cli/internal/pipelines"
 	"github.com/stretchr/testify/assert"
@@ -55,8 +56,8 @@ func sampleDraftInput() pipelines.Input {
 		IsDraft:    true,
 		State:      pipelines.InputStateValid,
 		Payload:    map[string]any{"k": "v"},
-		CreatedAt:  "2026-04-29T10:00:00Z",
-		UpdatedAt:  "2026-04-29T10:05:00Z",
+		CreatedAt:  time.Date(2026, 4, 29, 10, 0, 0, 0, time.UTC),
+		UpdatedAt:  time.Date(2026, 4, 29, 10, 5, 0, 0, time.UTC),
 	}
 }
 
@@ -82,18 +83,22 @@ func TestPrintInputJSON(t *testing.T) {
 
 func TestPrintInputHuman_Draft(t *testing.T) {
 	output := captureStdout(t, func() { PrintInputHuman(sampleDraftInput()) })
-	assert.Contains(t, output, "Input ID:    in-1")
-	assert.Contains(t, output, "Scope:       draft")
-	assert.Contains(t, output, "Version:     \u2014")
-	assert.Contains(t, output, "State:       VALID")
+	assert.Contains(t, output, "Input ID:")
+	assert.Contains(t, output, "in-1")
+	assert.Contains(t, output, "Scope:")
+	assert.Contains(t, output, "draft")
+	assert.Contains(t, output, "Version:")
+	assert.Contains(t, output, "\u2014")
+	assert.Contains(t, output, "State:")
+	assert.Contains(t, output, "VALID")
 	assert.Contains(t, output, "Payload:")
 	assert.Contains(t, output, `"k": "v"`)
 }
 
 func TestPrintInputHuman_Locked(t *testing.T) {
 	output := captureStdout(t, func() { PrintInputHuman(sampleLockedInput()) })
-	assert.Contains(t, output, "Scope:       locked")
-	assert.Contains(t, output, "Version:     v2")
+	assert.Contains(t, output, "locked")
+	assert.Contains(t, output, "v2")
 }
 
 func TestPrintInputListJSON(t *testing.T) {
@@ -118,7 +123,7 @@ func TestPrintInputListHuman_RendersTable(t *testing.T) {
 		PrintInputListHuman([]pipelines.Input{sampleDraftInput(), sampleLockedInput()})
 	})
 
-	assert.Contains(t, output, "INPUT_ID")
+	assert.Contains(t, output, "INPUT")
 	assert.Contains(t, output, "SCOPE")
 	assert.Contains(t, output, "VERSION")
 	assert.Contains(t, output, "draft")

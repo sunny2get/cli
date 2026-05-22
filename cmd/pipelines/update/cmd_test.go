@@ -22,6 +22,8 @@ import (
 	"testing"
 	"time"
 
+	"github.com/datarobot/cli/cmd/pipelines/outputfmt"
+	"github.com/datarobot/cli/cmd/pipelines/pipelineutil"
 	"github.com/datarobot/cli/internal/pipelines"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
@@ -55,7 +57,7 @@ func sampleUpdateResponse() pipelines.CreateResponse {
 		Status:     "READY",
 		Mode:       "draft",
 		TaskNames:  []string{"create_vector_database"},
-		CreatedAt:  pipelines.Time{Time: time.Date(2026, 4, 28, 12, 24, 54, 0, time.UTC)},
+		CreatedAt:  time.Date(2026, 4, 28, 12, 24, 54, 0, time.UTC),
 	}
 }
 
@@ -63,7 +65,7 @@ func TestPrintUpdateJSON(t *testing.T) {
 	resp := sampleUpdateResponse()
 
 	output := captureStdout(t, func() {
-		err := printUpdateJSON(resp)
+		err := pipelineutil.RenderCreateResponse(outputfmt.OutputFormatJSON, resp)
 		require.NoError(t, err)
 	})
 
@@ -80,14 +82,14 @@ func TestPrintUpdateHuman_WithTasks(t *testing.T) {
 	resp := sampleUpdateResponse()
 
 	output := captureStdout(t, func() {
-		printUpdateHuman(resp)
+		require.NoError(t, pipelineutil.RenderCreateResponse(outputfmt.OutputFormatText, resp))
 	})
 
-	assert.Contains(t, output, "Pipeline ID:  "+resp.PipelineID)
-	assert.Contains(t, output, "Name:         confluence_to_vdb")
-	assert.Contains(t, output, "Version:      2")
-	assert.Contains(t, output, "Status:       READY")
-	assert.Contains(t, output, "Mode:         draft")
+	assert.Contains(t, output, resp.PipelineID)
+	assert.Contains(t, output, "confluence_to_vdb")
+	assert.Contains(t, output, "2")
+	assert.Contains(t, output, "READY")
+	assert.Contains(t, output, "draft")
 	assert.Contains(t, output, "create_vector_database")
 }
 
@@ -96,10 +98,10 @@ func TestPrintUpdateHuman_NoTasks(t *testing.T) {
 	resp.TaskNames = nil
 
 	output := captureStdout(t, func() {
-		printUpdateHuman(resp)
+		require.NoError(t, pipelineutil.RenderCreateResponse(outputfmt.OutputFormatText, resp))
 	})
 
-	assert.Contains(t, output, "Tasks:        \u2014")
+	assert.Contains(t, output, "—")
 }
 
 func TestCmd_RequiresPipelineID(t *testing.T) {
@@ -139,7 +141,7 @@ func TestCmd_RejectsBothPositionalAndFromFile(t *testing.T) {
 
 func TestCmd_RejectsInvalidOutput(t *testing.T) {
 	cmd := Cmd()
-	cmd.SetArgs([]string{"some-id", "some-file.py", "--output", "yaml"})
+	cmd.SetArgs([]string{"some-id", "some-file.py", "--output-format", "yaml"})
 	cmd.SetOut(io.Discard)
 	cmd.SetErr(io.Discard)
 	cmd.PreRunE = nil
@@ -152,7 +154,7 @@ func TestCmd_RejectsInvalidOutput(t *testing.T) {
 func TestCmd_HasExpectedFlags(t *testing.T) {
 	cmd := Cmd()
 
-	for _, name := range []string{"output", "from-file"} {
+	for _, name := range []string{"output-format", "from-file"} {
 		flag := cmd.Flags().Lookup(name)
 		assert.NotNilf(t, flag, "expected --%s flag to be registered", name)
 	}

@@ -22,6 +22,8 @@ import (
 	"testing"
 	"time"
 
+	"github.com/datarobot/cli/cmd/pipelines/outputfmt"
+	"github.com/datarobot/cli/cmd/pipelines/pipelineutil"
 	"github.com/datarobot/cli/internal/pipelines"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
@@ -60,8 +62,8 @@ func sampleListResponse() pipelines.ListResponse {
 				Mode:          "draft",
 				IsActive:      true,
 				LatestVersion: intPtr(3),
-				CreatedAt:     pipelines.Time{Time: time.Date(2026, 4, 28, 11, 42, 28, 0, time.UTC)},
-				UpdatedAt:     pipelines.Time{Time: time.Date(2026, 4, 28, 12, 25, 11, 0, time.UTC)},
+				CreatedAt:     time.Date(2026, 4, 28, 11, 42, 28, 0, time.UTC),
+				UpdatedAt:     time.Date(2026, 4, 28, 12, 25, 11, 0, time.UTC),
 			},
 		},
 		Total:  1,
@@ -74,7 +76,7 @@ func TestPrintListJSON(t *testing.T) {
 	list := sampleListResponse()
 
 	output := captureStdout(t, func() {
-		err := printListJSON(list)
+		err := pipelineutil.RenderPipelines(outputfmt.OutputFormatJSON, list)
 		require.NoError(t, err)
 	})
 
@@ -95,7 +97,7 @@ func TestPrintListJSON(t *testing.T) {
 
 func TestPrintListHuman_Empty(t *testing.T) {
 	output := captureStdout(t, func() {
-		printListHuman(pipelines.ListResponse{Total: 0, Limit: 50})
+		require.NoError(t, pipelineutil.RenderPipelines(outputfmt.OutputFormatText, pipelines.ListResponse{Total: 0, Limit: 50}))
 	})
 
 	assert.Contains(t, output, "No pipelines found.")
@@ -105,7 +107,7 @@ func TestPrintListHuman_RendersHeaderAndRow(t *testing.T) {
 	list := sampleListResponse()
 
 	output := captureStdout(t, func() {
-		printListHuman(list)
+		require.NoError(t, pipelineutil.RenderPipelines(outputfmt.OutputFormatText, list))
 	})
 
 	assert.Contains(t, output, "Showing 1 of 1")
@@ -120,7 +122,7 @@ func TestPrintListHuman_RendersHeaderAndRow(t *testing.T) {
 	assert.Contains(t, output, "draft")
 	assert.Contains(t, output, "true")
 	assert.Contains(t, output, "v3")
-	assert.Contains(t, output, "2026-04-28T12:25:11Z")
+	assert.Contains(t, output, "2026-04-28")
 }
 
 func TestPrintListHuman_NoLatestVersion(t *testing.T) {
@@ -128,15 +130,15 @@ func TestPrintListHuman_NoLatestVersion(t *testing.T) {
 	list.Items[0].LatestVersion = nil
 
 	output := captureStdout(t, func() {
-		printListHuman(list)
+		require.NoError(t, pipelineutil.RenderPipelines(outputfmt.OutputFormatText, list))
 	})
 
-	assert.Contains(t, output, "\u2014")
+	assert.Contains(t, output, "—")
 }
 
 func TestCmd_RejectsInvalidOutput(t *testing.T) {
 	cmd := Cmd()
-	cmd.SetArgs([]string{"--output", "yaml"})
+	cmd.SetArgs([]string{"--output-format", "yaml"})
 	cmd.SetOut(io.Discard)
 	cmd.SetErr(io.Discard)
 	cmd.PreRunE = nil
@@ -161,7 +163,7 @@ func TestCmd_RejectsInvalidMode(t *testing.T) {
 func TestCmd_HasExpectedFlags(t *testing.T) {
 	cmd := Cmd()
 
-	for _, name := range []string{"mode", "offset", "limit", "output"} {
+	for _, name := range []string{"mode", "offset", "limit", "output-format"} {
 		flag := cmd.Flags().Lookup(name)
 		assert.NotNilf(t, flag, "expected --%s flag to be registered", name)
 	}

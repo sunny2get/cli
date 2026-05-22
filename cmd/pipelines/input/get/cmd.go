@@ -20,6 +20,7 @@ import (
 	"net/http"
 
 	"github.com/datarobot/cli/cmd/pipelines/input/inpututil"
+	"github.com/datarobot/cli/cmd/pipelines/outputfmt"
 	"github.com/datarobot/cli/cmd/pipelines/scopeflag"
 	"github.com/datarobot/cli/internal/auth"
 	"github.com/datarobot/cli/internal/drapi"
@@ -31,7 +32,7 @@ import (
 func Cmd() *cobra.Command {
 	var (
 		flags        scopeflag.Flags
-		outputFormat string
+		outputFormat outputfmt.OutputFormat
 	)
 
 	cmd := &cobra.Command{
@@ -41,15 +42,11 @@ func Cmd() *cobra.Command {
 
 Example:
   dr pipelines input get --pipeline <id> <input-id>
-  dr pipelines input get --pipeline <id> --version=2 <input-id> --output json`,
+  dr pipelines input get --pipeline <id> --version=2 <input-id> --output-format json`,
 		Args:         cobra.ExactArgs(1),
 		PreRunE:      auth.EnsureAuthenticatedE,
 		SilenceUsage: true,
 		RunE: func(cmd *cobra.Command, args []string) error {
-			if outputFormat != "" && outputFormat != "json" {
-				return fmt.Errorf("invalid output format: %s (supported: json)", outputFormat)
-			}
-
 			if flags.PipelineID == "" {
 				return errors.New("--pipeline is required")
 			}
@@ -64,18 +61,12 @@ Example:
 				return handleGetError(err, args[0])
 			}
 
-			if outputFormat == "json" {
-				return inpututil.PrintInputJSON(*result)
-			}
-
-			inpututil.PrintInputHuman(*result)
-
-			return nil
+			return inpututil.RenderInput(outputFormat, *result)
 		},
 	}
 
 	flags.Bind(cmd)
-	cmd.Flags().StringVar(&outputFormat, "output", "", "Output format (json)")
+	outputfmt.AddOutputFlag(cmd, &outputFormat)
 
 	return cmd
 }

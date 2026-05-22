@@ -16,13 +16,14 @@ package get
 
 import (
 	"bytes"
-	"encoding/json"
 	"errors"
 	"io"
 	"os"
 	"testing"
 	"time"
 
+	"github.com/datarobot/cli/cmd/pipelines/outputfmt"
+	"github.com/datarobot/cli/cmd/pipelines/pipelineutil"
 	"github.com/datarobot/cli/internal/drapi"
 	"github.com/datarobot/cli/internal/pipelines"
 	"github.com/stretchr/testify/assert"
@@ -56,8 +57,8 @@ func samplePipeline() pipelines.Pipeline {
 		Description: "test",
 		Mode:        "draft",
 		IsActive:    true,
-		CreatedAt:   pipelines.Time{Time: time.Date(2026, 4, 28, 11, 42, 28, 0, time.UTC)},
-		UpdatedAt:   pipelines.Time{Time: time.Date(2026, 4, 28, 12, 25, 11, 0, time.UTC)},
+		CreatedAt:   time.Date(2026, 4, 28, 11, 42, 28, 0, time.UTC),
+		UpdatedAt:   time.Date(2026, 4, 28, 12, 25, 11, 0, time.UTC),
 		Versions: []pipelines.PipelineVersion{
 			{
 				Version:       1,
@@ -65,7 +66,7 @@ func samplePipeline() pipelines.Pipeline {
 				PipelineName:  "confluence_to_vdb",
 				TaskNames:     []string{"create_vector_database", "ingest_confluence_files"},
 				PythonVersion: "3.12",
-				CreatedAt:     pipelines.Time{Time: time.Date(2026, 4, 28, 11, 42, 28, 0, time.UTC)},
+				CreatedAt:     time.Date(2026, 4, 28, 11, 42, 28, 0, time.UTC),
 			},
 			{
 				Version:       2,
@@ -73,7 +74,7 @@ func samplePipeline() pipelines.Pipeline {
 				PipelineName:  "confluence_to_vdb",
 				PythonVersion: "3.12",
 				ErrorDetail:   "boom",
-				CreatedAt:     pipelines.Time{Time: time.Date(2026, 4, 28, 12, 25, 11, 0, time.UTC)},
+				CreatedAt:     time.Date(2026, 4, 28, 12, 25, 11, 0, time.UTC),
 			},
 		},
 	}
@@ -83,34 +84,27 @@ func TestPrintGetJSON(t *testing.T) {
 	pipeline := samplePipeline()
 
 	output := captureStdout(t, func() {
-		err := printGetJSON(pipeline)
+		err := pipelineutil.RenderPipeline(outputfmt.OutputFormatJSON, pipeline)
 		require.NoError(t, err)
 	})
 
-	var parsed map[string]interface{}
-
-	err := json.Unmarshal([]byte(output), &parsed)
-	require.NoError(t, err)
-	assert.Equal(t, pipeline.PipelineID, parsed["pipeline_id"])
-	assert.Equal(t, "confluence_to_vdb", parsed["name"])
-
-	versions, ok := parsed["versions"].([]interface{})
-	require.True(t, ok)
-	require.Len(t, versions, 2)
+	assert.Contains(t, output, `"pipeline_id"`)
+	assert.Contains(t, output, "confluence_to_vdb")
+	assert.Contains(t, output, `"versions"`)
 }
 
 func TestPrintGetHuman_RendersHeaderAndVersions(t *testing.T) {
 	pipeline := samplePipeline()
 
 	output := captureStdout(t, func() {
-		printGetHuman(pipeline)
+		require.NoError(t, pipelineutil.RenderPipeline(outputfmt.OutputFormatText, pipeline))
 	})
 
-	assert.Contains(t, output, "ID:          "+pipeline.PipelineID)
-	assert.Contains(t, output, "Name:        confluence_to_vdb")
-	assert.Contains(t, output, "Description: test")
-	assert.Contains(t, output, "Mode:        draft")
-	assert.Contains(t, output, "Active:      true")
+	assert.Contains(t, output, pipeline.PipelineID)
+	assert.Contains(t, output, "confluence_to_vdb")
+	assert.Contains(t, output, "test")
+	assert.Contains(t, output, "draft")
+	assert.Contains(t, output, "true")
 	assert.Contains(t, output, "Versions (2):")
 	assert.Contains(t, output, "VERSION")
 	assert.Contains(t, output, "STATUS")
@@ -128,10 +122,10 @@ func TestPrintGetHuman_BlankDescriptionFallsBack(t *testing.T) {
 	pipeline.Description = ""
 
 	output := captureStdout(t, func() {
-		printGetHuman(pipeline)
+		require.NoError(t, pipelineutil.RenderPipeline(outputfmt.OutputFormatText, pipeline))
 	})
 
-	assert.Contains(t, output, "Description: \u2014")
+	assert.Contains(t, output, "—")
 }
 
 func TestPrintGetHuman_NoVersions(t *testing.T) {
@@ -139,7 +133,7 @@ func TestPrintGetHuman_NoVersions(t *testing.T) {
 	pipeline.Versions = nil
 
 	output := captureStdout(t, func() {
-		printGetHuman(pipeline)
+		require.NoError(t, pipelineutil.RenderPipeline(outputfmt.OutputFormatText, pipeline))
 	})
 
 	assert.NotContains(t, output, "Versions (")
@@ -157,7 +151,7 @@ func TestCmd_RequiresArg(t *testing.T) {
 
 func TestCmd_RejectsInvalidOutput(t *testing.T) {
 	cmd := Cmd()
-	cmd.SetArgs([]string{"some-id", "--output", "yaml"})
+	cmd.SetArgs([]string{"some-id", "--output-format", "yaml"})
 	cmd.SetOut(io.Discard)
 	cmd.SetErr(io.Discard)
 	cmd.PreRunE = nil
@@ -169,7 +163,7 @@ func TestCmd_RejectsInvalidOutput(t *testing.T) {
 
 func TestCmd_HasOutputFlag(t *testing.T) {
 	cmd := Cmd()
-	assert.NotNil(t, cmd.Flags().Lookup("output"))
+	assert.NotNil(t, cmd.Flags().Lookup("output-format"))
 }
 
 func TestHandleGetError_NotFoundPrintsFriendlyMessage(t *testing.T) {

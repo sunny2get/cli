@@ -16,9 +16,9 @@ package create
 
 import (
 	"errors"
-	"fmt"
 
 	"github.com/datarobot/cli/cmd/pipelines/environment/envutil"
+	"github.com/datarobot/cli/cmd/pipelines/outputfmt"
 	"github.com/datarobot/cli/internal/auth"
 	"github.com/datarobot/cli/internal/pipelines"
 	"github.com/spf13/cobra"
@@ -29,7 +29,7 @@ func Cmd() *cobra.Command {
 		name         string
 		description  string
 		rawPackages  []string
-		outputFormat string
+		outputFormat outputfmt.OutputFormat
 	)
 
 	cmd := &cobra.Command{
@@ -43,15 +43,11 @@ pipelines once its first version reaches the READY state.
 
 Example:
   dr pipelines environment create --name ml-base --package numpy --package pandas
-  dr pipelines environment create --name ml-base --packages numpy,pandas==2.0 --description "training base" --output json`,
+  dr pipelines environment create --name ml-base --packages numpy,pandas==2.0 --description "training base" --output-format json`,
 		Args:         cobra.NoArgs,
 		PreRunE:      auth.EnsureAuthenticatedE,
 		SilenceUsage: true,
 		RunE: func(_ *cobra.Command, _ []string) error {
-			if outputFormat != "" && outputFormat != "json" {
-				return fmt.Errorf("invalid output format: %s (supported: json)", outputFormat)
-			}
-
 			if name == "" {
 				return errors.New("--name is required")
 			}
@@ -66,20 +62,14 @@ Example:
 				return err
 			}
 
-			if outputFormat == "json" {
-				return envutil.PrintEnvironmentJSON(*result)
-			}
-
-			envutil.PrintEnvironmentHuman(*result)
-
-			return nil
+			return envutil.RenderEnvironment(outputFormat, *result)
 		},
 	}
 
 	cmd.Flags().StringVar(&name, "name", "", "Environment name (required)")
 	cmd.Flags().StringVar(&description, "description", "", "Optional description")
 	cmd.Flags().StringSliceVar(&rawPackages, "package", nil, "Pip package spec (repeatable, also accepts comma-separated values)")
-	cmd.Flags().StringVar(&outputFormat, "output", "", "Output format (json)")
+	outputfmt.AddOutputFlag(cmd, &outputFormat)
 
 	return cmd
 }

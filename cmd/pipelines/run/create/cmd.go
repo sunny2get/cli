@@ -16,8 +16,8 @@ package create
 
 import (
 	"errors"
-	"fmt"
 
+	"github.com/datarobot/cli/cmd/pipelines/outputfmt"
 	"github.com/datarobot/cli/cmd/pipelines/run/runutil"
 	"github.com/datarobot/cli/cmd/pipelines/scopeflag"
 	"github.com/datarobot/cli/internal/auth"
@@ -29,7 +29,7 @@ func Cmd() *cobra.Command {
 	var (
 		flags        scopeflag.Flags
 		inputID      string
-		outputFormat string
+		outputFormat outputfmt.OutputFormat
 	)
 
 	cmd := &cobra.Command{
@@ -42,15 +42,11 @@ or ` + "`dr pipelines run status`" + ` to follow its progress.
 
 Example:
   dr pipelines run create --pipeline <id> --input <input-id>
-  dr pipelines run create --pipeline <id> --version=2 --input <input-id> --output json`,
+  dr pipelines run create --pipeline <id> --version=2 --input <input-id> --output-format json`,
 		Args:         cobra.NoArgs,
 		PreRunE:      auth.EnsureAuthenticatedE,
 		SilenceUsage: true,
 		RunE: func(cmd *cobra.Command, _ []string) error {
-			if outputFormat != "" && outputFormat != "json" {
-				return fmt.Errorf("invalid output format: %s (supported: json)", outputFormat)
-			}
-
 			if flags.PipelineID == "" {
 				return errors.New("--pipeline is required")
 			}
@@ -69,19 +65,13 @@ Example:
 				return err
 			}
 
-			if outputFormat == "json" {
-				return runutil.PrintRunJSON(*result)
-			}
-
-			runutil.PrintRunHuman(*result)
-
-			return nil
+			return runutil.RenderRun(outputFormat, *result)
 		},
 	}
 
 	flags.Bind(cmd)
 	cmd.Flags().StringVar(&inputID, "input", "", "Input ID to trigger the run with")
-	cmd.Flags().StringVar(&outputFormat, "output", "", "Output format (json)")
+	outputfmt.AddOutputFlag(cmd, &outputFormat)
 
 	return cmd
 }

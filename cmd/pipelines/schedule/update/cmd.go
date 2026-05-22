@@ -16,8 +16,8 @@ package update
 
 import (
 	"errors"
-	"fmt"
 
+	"github.com/datarobot/cli/cmd/pipelines/outputfmt"
 	"github.com/datarobot/cli/cmd/pipelines/schedule/scheduleutil"
 	"github.com/datarobot/cli/internal/auth"
 	"github.com/datarobot/cli/internal/pipelines"
@@ -30,7 +30,7 @@ func Cmd() *cobra.Command {
 		version      int
 		cron         string
 		timezone     string
-		outputFormat string
+		outputFormat outputfmt.OutputFormat
 	)
 
 	cmd := &cobra.Command{
@@ -48,7 +48,7 @@ Example:
 		PreRunE:      auth.EnsureAuthenticatedE,
 		SilenceUsage: true,
 		RunE: func(cmd *cobra.Command, args []string) error {
-			body, err := buildUpdateBody(cmd, pipelineID, version, cron, timezone, outputFormat)
+			body, err := buildUpdateBody(cmd, pipelineID, version, cron, timezone)
 			if err != nil {
 				return err
 			}
@@ -58,13 +58,7 @@ Example:
 				return err
 			}
 
-			if outputFormat == "json" {
-				return scheduleutil.PrintScheduleJSON(*result)
-			}
-
-			scheduleutil.PrintScheduleHuman(*result)
-
-			return nil
+			return scheduleutil.RenderSchedule(outputFormat, *result)
 		},
 	}
 
@@ -72,18 +66,14 @@ Example:
 	cmd.Flags().IntVar(&version, "version", 0, "Locked pipeline version")
 	cmd.Flags().StringVar(&cron, "cron", "", "New cron expression")
 	cmd.Flags().StringVar(&timezone, "timezone", "", "New IANA timezone name")
-	cmd.Flags().StringVar(&outputFormat, "output", "", "Output format (json)")
+	outputfmt.AddOutputFlag(cmd, &outputFormat)
 
 	return cmd
 }
 
 // buildUpdateBody validates the flag set and assembles the PATCH body. It is
 // extracted from RunE to keep the cobra command's cyclomatic complexity low.
-func buildUpdateBody(cmd *cobra.Command, pipelineID string, version int, cron, timezone, outputFormat string) (pipelines.ScheduleUpdateRequest, error) {
-	if outputFormat != "" && outputFormat != "json" {
-		return pipelines.ScheduleUpdateRequest{}, fmt.Errorf("invalid output format: %s (supported: json)", outputFormat)
-	}
-
+func buildUpdateBody(cmd *cobra.Command, pipelineID string, version int, cron, timezone string) (pipelines.ScheduleUpdateRequest, error) {
 	if pipelineID == "" {
 		return pipelines.ScheduleUpdateRequest{}, errors.New("--pipeline is required")
 	}

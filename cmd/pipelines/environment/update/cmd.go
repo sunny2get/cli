@@ -15,9 +15,8 @@
 package update
 
 import (
-	"fmt"
-
 	"github.com/datarobot/cli/cmd/pipelines/environment/envutil"
+	"github.com/datarobot/cli/cmd/pipelines/outputfmt"
 	"github.com/datarobot/cli/internal/auth"
 	"github.com/datarobot/cli/internal/pipelines"
 	"github.com/spf13/cobra"
@@ -26,7 +25,7 @@ import (
 func Cmd() *cobra.Command {
 	var (
 		rawPackages  []string
-		outputFormat string
+		outputFormat outputfmt.OutputFormat
 	)
 
 	cmd := &cobra.Command{
@@ -39,15 +38,11 @@ the supplied pip packages. Existing versions are unchanged.
 
 Example:
   dr pipelines environment update env-123 --package scikit-learn
-  dr pipelines environment update env-123 --package "scikit-learn==1.5,torch" --output json`,
+  dr pipelines environment update env-123 --package "scikit-learn==1.5,torch" --output-format json`,
 		Args:         cobra.ExactArgs(1),
 		PreRunE:      auth.EnsureAuthenticatedE,
 		SilenceUsage: true,
 		RunE: func(_ *cobra.Command, args []string) error {
-			if outputFormat != "" && outputFormat != "json" {
-				return fmt.Errorf("invalid output format: %s (supported: json)", outputFormat)
-			}
-
 			packages, err := envutil.NormalizePackages(rawPackages)
 			if err != nil {
 				return err
@@ -58,18 +53,12 @@ Example:
 				return err
 			}
 
-			if outputFormat == "json" {
-				return envutil.PrintEnvironmentJSON(*result)
-			}
-
-			envutil.PrintEnvironmentHuman(*result)
-
-			return nil
+			return envutil.RenderEnvironment(outputFormat, *result)
 		},
 	}
 
 	cmd.Flags().StringSliceVar(&rawPackages, "package", nil, "Pip package spec (repeatable, also accepts comma-separated values)")
-	cmd.Flags().StringVar(&outputFormat, "output", "", "Output format (json)")
+	outputfmt.AddOutputFlag(cmd, &outputFormat)
 
 	return cmd
 }

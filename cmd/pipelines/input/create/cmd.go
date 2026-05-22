@@ -16,9 +16,9 @@ package create
 
 import (
 	"errors"
-	"fmt"
 
 	"github.com/datarobot/cli/cmd/pipelines/input/inpututil"
+	"github.com/datarobot/cli/cmd/pipelines/outputfmt"
 	"github.com/datarobot/cli/cmd/pipelines/scopeflag"
 	"github.com/datarobot/cli/internal/auth"
 	"github.com/datarobot/cli/internal/pipelines"
@@ -29,7 +29,7 @@ func Cmd() *cobra.Command {
 	var (
 		flags        scopeflag.Flags
 		fromFile     string
-		outputFormat string
+		outputFormat outputfmt.OutputFormat
 	)
 
 	cmd := &cobra.Command{
@@ -50,15 +50,11 @@ Scope is selected from the --scope/--version flags:
 Example:
   dr pipelines input create --pipeline <id> ./payload.json
   dr pipelines input create --pipeline <id> --from-file=./payload.json
-  dr pipelines input create --pipeline <id> --version=2 ./payload.json --output json`,
+  dr pipelines input create --pipeline <id> --version=2 ./payload.json --output-format json`,
 		Args:         cobra.MaximumNArgs(1),
 		PreRunE:      auth.EnsureAuthenticatedE,
 		SilenceUsage: true,
 		RunE: func(cmd *cobra.Command, args []string) error {
-			if outputFormat != "" && outputFormat != "json" {
-				return fmt.Errorf("invalid output format: %s (supported: json)", outputFormat)
-			}
-
 			if flags.PipelineID == "" {
 				return errors.New("--pipeline is required")
 			}
@@ -78,19 +74,13 @@ Example:
 				return err
 			}
 
-			if outputFormat == "json" {
-				return inpututil.PrintInputJSON(*result)
-			}
-
-			inpututil.PrintInputHuman(*result)
-
-			return nil
+			return inpututil.RenderInput(outputFormat, *result)
 		},
 	}
 
 	flags.Bind(cmd)
 	cmd.Flags().StringVar(&fromFile, "from-file", "", "Path to the JSON payload file, e.g. --from-file=./payload.json (alternative to the positional argument)")
-	cmd.Flags().StringVar(&outputFormat, "output", "", "Output format (json)")
+	outputfmt.AddOutputFlag(cmd, &outputFormat)
 
 	return cmd
 }

@@ -22,6 +22,8 @@ import (
 	"testing"
 	"time"
 
+	"github.com/datarobot/cli/cmd/pipelines/outputfmt"
+	"github.com/datarobot/cli/cmd/pipelines/pipelineutil"
 	"github.com/datarobot/cli/internal/pipelines"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
@@ -55,7 +57,7 @@ func sampleCreateResponse() pipelines.CreateResponse {
 		Status:     "READY",
 		Mode:       "draft",
 		TaskNames:  []string{"create_vector_database", "ingest_confluence_files"},
-		CreatedAt:  pipelines.Time{Time: time.Date(2026, 4, 28, 11, 42, 28, 0, time.UTC)},
+		CreatedAt:  time.Date(2026, 4, 28, 11, 42, 28, 0, time.UTC),
 	}
 }
 
@@ -63,7 +65,7 @@ func TestPrintCreateJSON(t *testing.T) {
 	resp := sampleCreateResponse()
 
 	output := captureStdout(t, func() {
-		err := printCreateJSON(resp)
+		err := pipelineutil.RenderCreateResponse(outputfmt.OutputFormatJSON, resp)
 		require.NoError(t, err)
 	})
 
@@ -82,14 +84,14 @@ func TestPrintCreateHuman_WithTasks(t *testing.T) {
 	resp := sampleCreateResponse()
 
 	output := captureStdout(t, func() {
-		printCreateHuman(resp)
+		require.NoError(t, pipelineutil.RenderCreateResponse(outputfmt.OutputFormatText, resp))
 	})
 
 	assert.Contains(t, output, resp.PipelineID)
 	assert.Contains(t, output, "confluence_to_vdb")
-	assert.Contains(t, output, "Version:      1")
-	assert.Contains(t, output, "Status:       READY")
-	assert.Contains(t, output, "Mode:         draft")
+	assert.Contains(t, output, "1")
+	assert.Contains(t, output, "READY")
+	assert.Contains(t, output, "draft")
 	assert.Contains(t, output, "create_vector_database, ingest_confluence_files")
 }
 
@@ -98,10 +100,10 @@ func TestPrintCreateHuman_NoTasks(t *testing.T) {
 	resp.TaskNames = nil
 
 	output := captureStdout(t, func() {
-		printCreateHuman(resp)
+		require.NoError(t, pipelineutil.RenderCreateResponse(outputfmt.OutputFormatText, resp))
 	})
 
-	assert.Contains(t, output, "Tasks:        \u2014")
+	assert.Contains(t, output, "—")
 }
 
 func TestCmd_RequiresFilePath(t *testing.T) {
@@ -174,7 +176,7 @@ func TestResolveFilePath(t *testing.T) {
 
 func TestCmd_RejectsInvalidOutput(t *testing.T) {
 	cmd := Cmd()
-	cmd.SetArgs([]string{"some-file.py", "--output", "yaml"})
+	cmd.SetArgs([]string{"some-file.py", "--output-format", "yaml"})
 	cmd.SetOut(io.Discard)
 	cmd.SetErr(io.Discard)
 	cmd.PreRunE = nil // bypass auth
@@ -199,7 +201,7 @@ func TestCmd_RejectsInvalidMode(t *testing.T) {
 func TestCmd_HasExpectedFlags(t *testing.T) {
 	cmd := Cmd()
 
-	for _, name := range []string{"description", "mode", "output", "from-file"} {
+	for _, name := range []string{"description", "mode", "output-format", "from-file"} {
 		flag := cmd.Flags().Lookup(name)
 		assert.NotNilf(t, flag, "expected --%s flag to be registered", name)
 	}

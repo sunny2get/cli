@@ -16,8 +16,8 @@ package list
 
 import (
 	"errors"
-	"fmt"
 
+	"github.com/datarobot/cli/cmd/pipelines/outputfmt"
 	"github.com/datarobot/cli/cmd/pipelines/version/versionutil"
 	"github.com/datarobot/cli/internal/auth"
 	"github.com/datarobot/cli/internal/pipelines"
@@ -29,7 +29,7 @@ func Cmd() *cobra.Command {
 		pipelineID   string
 		offset       int
 		limit        int
-		outputFormat string
+		outputFormat outputfmt.OutputFormat
 	)
 
 	cmd := &cobra.Command{
@@ -39,15 +39,11 @@ func Cmd() *cobra.Command {
 
 Example:
   dr pipelines version list --pipeline <id>
-  dr pipelines version list --pipeline <id> --offset 10 --limit 5 --output json`,
+  dr pipelines version list --pipeline <id> --offset 10 --limit 5 --output-format json`,
 		Args:         cobra.NoArgs,
 		PreRunE:      auth.EnsureAuthenticatedE,
 		SilenceUsage: true,
 		RunE: func(_ *cobra.Command, _ []string) error {
-			if outputFormat != "" && outputFormat != "json" {
-				return fmt.Errorf("invalid output format: %s (supported: json)", outputFormat)
-			}
-
 			if pipelineID == "" {
 				return errors.New("--pipeline is required")
 			}
@@ -57,20 +53,14 @@ Example:
 				return err
 			}
 
-			if outputFormat == "json" {
-				return versionutil.PrintVersionListJSON(items)
-			}
-
-			versionutil.PrintVersionListHuman(items)
-
-			return nil
+			return versionutil.RenderVersions(outputFormat, items)
 		},
 	}
 
 	cmd.Flags().StringVar(&pipelineID, "pipeline", "", "Pipeline ID")
 	cmd.Flags().IntVar(&offset, "offset", 0, "Pagination offset")
 	cmd.Flags().IntVar(&limit, "limit", 0, "Maximum number of versions to return")
-	cmd.Flags().StringVar(&outputFormat, "output", "", "Output format (json)")
+	outputfmt.AddOutputFlag(cmd, &outputFormat)
 
 	return cmd
 }

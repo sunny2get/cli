@@ -19,6 +19,7 @@ import (
 	"io"
 	"os"
 	"testing"
+	"time"
 
 	"github.com/datarobot/cli/internal/pipelines"
 	"github.com/stretchr/testify/assert"
@@ -74,8 +75,8 @@ func TestPrintEnvironmentHuman_RendersVersionsTable(t *testing.T) {
 		Name:          "ml-base",
 		LatestVersion: 2,
 		Versions: []pipelines.EnvironmentVersion{
-			{Version: 2, Packages: []string{"scikit-learn"}, Status: pipelines.EnvironmentStatusReady, UpdatedAt: "u2"},
-			{Version: 1, Packages: []string{"numpy", "pandas"}, Status: pipelines.EnvironmentStatusReady, UpdatedAt: "u1"},
+			{Version: 2, Packages: []string{"scikit-learn"}, Status: pipelines.EnvironmentStatusReady, UpdatedAt: time.Date(2026, 1, 2, 0, 0, 0, 0, time.UTC)},
+			{Version: 1, Packages: []string{"numpy", "pandas"}, Status: pipelines.EnvironmentStatusReady, UpdatedAt: time.Date(2026, 1, 1, 0, 0, 0, 0, time.UTC)},
 		},
 	}
 
@@ -83,8 +84,10 @@ func TestPrintEnvironmentHuman_RendersVersionsTable(t *testing.T) {
 		PrintEnvironmentHuman(env)
 	})
 
-	assert.Contains(t, out, "Environment ID: env-1")
-	assert.Contains(t, out, "Latest version: v2")
+	assert.Contains(t, out, "Environment ID:")
+	assert.Contains(t, out, "env-1")
+	assert.Contains(t, out, "Latest version:")
+	assert.Contains(t, out, "v2")
 	assert.Contains(t, out, "VERSION")
 	assert.Contains(t, out, "v2")
 	assert.Contains(t, out, "scikit-learn")
@@ -98,10 +101,10 @@ func TestPrintEnvironmentListHuman_EmptyAndPopulated(t *testing.T) {
 
 	out = captureStdout(t, func() {
 		PrintEnvironmentListHuman([]pipelines.EnvironmentSummary{
-			{EnvironmentID: "env-1", Name: "ml-base", LatestVersion: 3, LatestStatus: pipelines.EnvironmentStatusReady, UpdatedAt: "u"},
+			{EnvironmentID: "env-1", Name: "ml-base", LatestVersion: 3, LatestStatus: pipelines.EnvironmentStatusReady, UpdatedAt: time.Date(2026, 1, 1, 0, 0, 0, 0, time.UTC)},
 		})
 	})
-	assert.Contains(t, out, "ENVIRONMENT_ID")
+	assert.Contains(t, out, "ENVIRONMENT")
 	assert.Contains(t, out, "env-1")
 	assert.Contains(t, out, "v3")
 }

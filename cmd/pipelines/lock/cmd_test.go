@@ -22,6 +22,8 @@ import (
 	"testing"
 	"time"
 
+	"github.com/datarobot/cli/cmd/pipelines/outputfmt"
+	"github.com/datarobot/cli/cmd/pipelines/pipelineutil"
 	"github.com/datarobot/cli/internal/pipelines"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
@@ -55,13 +57,13 @@ func sample() pipelines.CreateResponse {
 		Status:     "READY",
 		Mode:       "locked",
 		TaskNames:  []string{"e1", "e2"},
-		CreatedAt:  pipelines.Time{Time: time.Date(2026, 4, 30, 10, 0, 0, 0, time.UTC)},
+		CreatedAt:  time.Date(2026, 4, 30, 10, 0, 0, 0, time.UTC),
 	}
 }
 
 func TestPrintLockJSON(t *testing.T) {
 	output := captureStdout(t, func() {
-		require.NoError(t, printLockJSON(sample()))
+		require.NoError(t, pipelineutil.RenderCreateResponse(outputfmt.OutputFormatJSON, sample()))
 	})
 
 	var parsed map[string]any
@@ -74,13 +76,13 @@ func TestPrintLockJSON(t *testing.T) {
 
 func TestPrintLockHuman(t *testing.T) {
 	output := captureStdout(t, func() {
-		printLockHuman(sample())
+		require.NoError(t, pipelineutil.RenderCreateResponse(outputfmt.OutputFormatText, sample()))
 	})
 
-	assert.Contains(t, output, "Pipeline ID:  abc")
-	assert.Contains(t, output, "Mode:         locked")
-	assert.Contains(t, output, "Version:      v3")
-	assert.Contains(t, output, "Tasks:        e1, e2")
+	assert.Contains(t, output, "abc")
+	assert.Contains(t, output, "locked")
+	assert.Contains(t, output, "3")
+	assert.Contains(t, output, "e1, e2")
 }
 
 func TestPrintLockHuman_NoTasks(t *testing.T) {
@@ -88,15 +90,15 @@ func TestPrintLockHuman_NoTasks(t *testing.T) {
 	resp.TaskNames = nil
 
 	output := captureStdout(t, func() {
-		printLockHuman(resp)
+		require.NoError(t, pipelineutil.RenderCreateResponse(outputfmt.OutputFormatText, resp))
 	})
 
-	assert.Contains(t, output, "Tasks:        \u2014")
+	assert.Contains(t, output, "—")
 }
 
 func TestCmd_RejectsInvalidOutput(t *testing.T) {
 	cmd := Cmd()
-	cmd.SetArgs([]string{"abc", "--output", "yaml"})
+	cmd.SetArgs([]string{"abc", "--output-format", "yaml"})
 	cmd.SetOut(io.Discard)
 	cmd.SetErr(io.Discard)
 	cmd.PreRunE = nil

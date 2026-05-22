@@ -22,18 +22,74 @@ import (
 	"encoding/json"
 	"fmt"
 	"os"
+	"slices"
 	"strconv"
 	"strings"
 	"text/tabwriter"
 	"time"
 
+	"github.com/charmbracelet/lipgloss"
+	"github.com/charmbracelet/lipgloss/table"
+	"github.com/datarobot/cli/cmd/pipelines/outputfmt"
 	"github.com/datarobot/cli/internal/pipelines"
 	"github.com/datarobot/cli/tui"
 )
 
-// PrintVersionJSON marshals a single version as indented JSON.
+const (
+	timestampFormat       = "2006-01-02 15:04 UTC"
+	emptyValuePlaceholder = "—"
+)
+
+// versionJSON is the CLI-facing DTO used for `--output-format json`.
+type versionJSON struct {
+	Version        int            `json:"version"`
+	Status         string         `json:"status"`
+	PipelineName   string         `json:"pipeline_name"`
+	TaskNames      []string       `json:"task_names,omitempty"`
+	PythonVersion  string         `json:"python_version,omitempty"`
+	ResourceBundle map[string]any `json:"resource_bundle,omitempty"`
+	ErrorDetail    string         `json:"error_detail,omitempty"`
+	CreatedAt      string         `json:"created_at"`
+}
+
+func toVersionJSON(v pipelines.PipelineVersion) versionJSON {
+	return versionJSON{
+		Version:        v.Version,
+		Status:         v.Status,
+		PipelineName:   v.PipelineName,
+		TaskNames:      v.TaskNames,
+		PythonVersion:  v.PythonVersion,
+		ResourceBundle: v.ResourceBundle,
+		ErrorDetail:    v.ErrorDetail,
+		CreatedAt:      v.CreatedAt.UTC().Format(time.RFC3339),
+	}
+}
+
+// RenderVersion routes a single version to JSON or human output.
+func RenderVersion(format outputfmt.OutputFormat, v pipelines.PipelineVersion) error {
+	if format == outputfmt.OutputFormatJSON {
+		return PrintVersionJSON(v)
+	}
+
+	PrintVersionHuman(v)
+
+	return nil
+}
+
+// RenderVersions routes a list of versions to JSON or human output.
+func RenderVersions(format outputfmt.OutputFormat, items []pipelines.PipelineVersion) error {
+	if format == outputfmt.OutputFormatJSON {
+		return PrintVersionListJSON(items)
+	}
+
+	PrintVersionListHuman(items)
+
+	return nil
+}
+
+// PrintVersionJSON marshals a single version as indented JSON through the DTO.
 func PrintVersionJSON(v pipelines.PipelineVersion) error {
-	data, err := json.MarshalIndent(v, "", "  ")
+	data, err := json.MarshalIndent(toVersionJSON(v), "", "  ")
 	if err != nil {
 		return err
 	}
@@ -45,32 +101,42 @@ func PrintVersionJSON(v pipelines.PipelineVersion) error {
 
 // PrintVersionHuman renders the key facts about a single version.
 func PrintVersionHuman(v pipelines.PipelineVersion) {
-	tasks := "\u2014"
+	tasks := emptyValuePlaceholder
 	if len(v.TaskNames) > 0 {
 		tasks = strings.Join(v.TaskNames, ", ")
 	}
 
 	python := v.PythonVersion
 	if python == "" {
-		python = "\u2014"
+		python = emptyValuePlaceholder
 	}
 
-	fmt.Println(tui.BaseTextStyle.Render("Version:        v" + strconv.Itoa(v.Version)))
-	fmt.Println(tui.BaseTextStyle.Render("Pipeline:       " + v.PipelineName))
-	fmt.Println(tui.BaseTextStyle.Render("Status:         " + v.Status))
-	fmt.Println(tui.BaseTextStyle.Render("Python Version: " + python))
-	fmt.Println(tui.BaseTextStyle.Render("Tasks:          " + tasks))
+	w := tabwriter.NewWriter(os.Stdout, 0, 0, 2, ' ', 0)
+
+	fmt.Fprintf(w, "Version:\tv%s\n", strconv.Itoa(v.Version))
+	fmt.Fprintf(w, "Pipeline:\t%s\n", v.PipelineName)
+	fmt.Fprintf(w, "Status:\t%s\n", v.Status)
+	fmt.Fprintf(w, "Python Version:\t%s\n", python)
+	fmt.Fprintf(w, "Tasks:\t%s\n", tasks)
 
 	if v.ErrorDetail != "" {
-		fmt.Println(tui.BaseTextStyle.Render("Error:          " + v.ErrorDetail))
+		fmt.Fprintf(w, "Error:\t%s\n", v.ErrorDetail)
 	}
 
-	fmt.Println(tui.DimStyle.Render("Created:        " + v.CreatedAt.UTC().Format(time.RFC3339)))
+	fmt.Fprintf(w, "Created:\t%s\n", v.CreatedAt.UTC().Format(timestampFormat))
+
+	w.Flush()
 }
 
-// PrintVersionListJSON marshals a list of versions as indented JSON.
+// PrintVersionListJSON marshals a list of versions as indented JSON through the DTO.
 func PrintVersionListJSON(items []pipelines.PipelineVersion) error {
-	data, err := json.MarshalIndent(items, "", "  ")
+	view := make([]versionJSON, len(items))
+
+	for i, v := range items {
+		view[i] = toVersionJSON(v)
+	}
+
+	data, err := json.MarshalIndent(view, "", "  ")
 	if err != nil {
 		return err
 	}
@@ -80,7 +146,7 @@ func PrintVersionListJSON(items []pipelines.PipelineVersion) error {
 	return nil
 }
 
-// PrintVersionListHuman renders a tabular summary of versions.
+// PrintVersionListHuman renders a lipgloss table summary of versions.
 func PrintVersionListHuman(items []pipelines.PipelineVersion) {
 	if len(items) == 0 {
 		fmt.Println(tui.DimStyle.Render("No versions found"))
@@ -88,29 +154,49 @@ func PrintVersionListHuman(items []pipelines.PipelineVersion) {
 		return
 	}
 
-	writer := tabwriter.NewWriter(os.Stdout, 0, 0, 2, ' ', 0)
+	cellStyle := tui.BaseTextStyle.Padding(0, 1)
 
-	fmt.Fprintln(writer, "VERSION\tSTATUS\tPYTHON\tCREATED\tTASKS")
+	dimStyle := tui.DimStyle.Padding(0, 1)
+
+	headers := []string{"VERSION", "STATUS", "PYTHON", "CREATED", "TASKS"}
+
+	createdCol := slices.Index(headers, "CREATED")
+
+	t := table.New().
+		Border(lipgloss.RoundedBorder()).
+		BorderStyle(tui.TableBorderStyle).
+		StyleFunc(func(row, col int) lipgloss.Style {
+			if row == table.HeaderRow {
+				return cellStyle.Bold(true)
+			}
+
+			if col == createdCol {
+				return dimStyle
+			}
+
+			return cellStyle
+		}).
+		Headers(headers...)
 
 	for _, v := range items {
-		tasks := "\u2014"
+		tasks := emptyValuePlaceholder
 		if len(v.TaskNames) > 0 {
 			tasks = strings.Join(v.TaskNames, ", ")
 		}
 
 		python := v.PythonVersion
 		if python == "" {
-			python = "\u2014"
+			python = emptyValuePlaceholder
 		}
 
-		fmt.Fprintf(writer, "v%s\t%s\t%s\t%s\t%s\n",
-			strconv.Itoa(v.Version),
+		t.Row(
+			"v"+strconv.Itoa(v.Version),
 			v.Status,
 			python,
-			v.CreatedAt.UTC().Format(time.RFC3339),
+			v.CreatedAt.UTC().Format(timestampFormat),
 			tasks,
 		)
 	}
 
-	_ = writer.Flush()
+	fmt.Fprintln(os.Stdout, t.Render())
 }
