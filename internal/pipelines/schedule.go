@@ -23,6 +23,7 @@ import (
 	"net/http"
 	"net/url"
 	"strconv"
+	"time"
 )
 
 // ScheduleStatus mirrors PipelineScheduleStatus in the pipelines-api enums.
@@ -42,8 +43,8 @@ type Schedule struct {
 	CronExpression string         `json:"cron_expression"`
 	Timezone       string         `json:"timezone"`
 	Status         ScheduleStatus `json:"status"`
-	CreatedAt      string         `json:"created_at"`
-	UpdatedAt      string         `json:"updated_at"`
+	CreatedAt      time.Time      `json:"created_at"`
+	UpdatedAt      time.Time      `json:"updated_at"`
 }
 
 // ScheduleCreateRequest mirrors PipelineScheduleCreateRequest.

@@ -27,6 +27,7 @@ import (
 	"net/http"
 	"net/url"
 	"strconv"
+	"time"
 )
 
 // Run lifecycle states (mirrors PipelineDispatchStatus on the wire).
@@ -51,8 +52,8 @@ type Run struct {
 	TriggeredBy        string `json:"triggered_by"`
 	Status             string `json:"status"`
 	ErrorDetail        string `json:"error_detail,omitempty"`
-	CreatedAt          string `json:"created_at"`
-	UpdatedAt          string `json:"updated_at"`
+	CreatedAt          time.Time `json:"created_at"`
+	UpdatedAt          time.Time `json:"updated_at"`
 }
 
 // RunStatus mirrors PipelineDispatchStatusResponse — the lightweight

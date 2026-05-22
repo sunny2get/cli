@@ -23,6 +23,7 @@ import (
 	"os"
 	"strconv"
 	"text/tabwriter"
+	"time"
 
 	"github.com/datarobot/cli/internal/pipelines"
 	"github.com/datarobot/cli/tui"
@@ -55,8 +56,8 @@ func PrintInputHuman(input pipelines.Input) {
 	fmt.Println(tui.BaseTextStyle.Render("Scope:       " + scope))
 	fmt.Println(tui.BaseTextStyle.Render("Version:     " + versionDisplay))
 	fmt.Println(tui.BaseTextStyle.Render("State:       " + string(input.State)))
-	fmt.Println(tui.DimStyle.Render("Created:     " + input.CreatedAt))
-	fmt.Println(tui.DimStyle.Render("Updated:     " + input.UpdatedAt))
+	fmt.Println(tui.DimStyle.Render("Created:     " + input.CreatedAt.UTC().Format(time.RFC3339)))
+	fmt.Println(tui.DimStyle.Render("Updated:     " + input.UpdatedAt.UTC().Format(time.RFC3339)))
 
 	payload, err := json.MarshalIndent(input.Payload, "", "  ")
 	if err != nil {
@@ -102,7 +103,7 @@ func PrintInputListHuman(inputs []pipelines.Input) {
 		}
 
 		fmt.Fprintf(writer, "%s\t%s\t%s\t%s\t%s\n",
-			in.InputID, scope, ver, in.State, in.UpdatedAt,
+			in.InputID, scope, ver, in.State, in.UpdatedAt.UTC().Format(time.RFC3339),
 		)
 	}
 

@@ -24,6 +24,7 @@ import (
 	"os"
 	"strconv"
 	"text/tabwriter"
+	"time"
 
 	"github.com/datarobot/cli/internal/pipelines"
 	"github.com/datarobot/cli/tui"
@@ -56,8 +57,8 @@ func toRunJSON(r pipelines.Run) runJSON {
 		TriggeredBy:   r.TriggeredBy,
 		Status:        r.Status,
 		ErrorDetail:   r.ErrorDetail,
-		CreatedAt:     r.CreatedAt,
-		UpdatedAt:     r.UpdatedAt,
+		CreatedAt:     r.CreatedAt.UTC().Format(time.RFC3339),
+		UpdatedAt:     r.UpdatedAt.UTC().Format(time.RFC3339),
 	}
 }
 
@@ -116,8 +117,8 @@ func PrintRunHuman(r pipelines.Run) {
 		fmt.Println(tui.BaseTextStyle.Render("Error:         " + r.ErrorDetail))
 	}
 
-	fmt.Println(tui.DimStyle.Render("Created:       " + r.CreatedAt))
-	fmt.Println(tui.DimStyle.Render("Updated:       " + r.UpdatedAt))
+	fmt.Println(tui.DimStyle.Render("Created:       " + r.CreatedAt.UTC().Format(time.RFC3339)))
+	fmt.Println(tui.DimStyle.Render("Updated:       " + r.UpdatedAt.UTC().Format(time.RFC3339)))
 }
 
 // PrintRunListJSON marshals a list of runs as indented JSON using
@@ -160,7 +161,7 @@ func PrintRunListHuman(items []pipelines.Run) {
 		}
 
 		fmt.Fprintf(writer, "%s\t%s\t%s\t%s\t%s\t%s\n",
-			r.RunID, scope, ver, r.Status, r.TriggeredBy, r.UpdatedAt,
+			r.RunID, scope, ver, r.Status, r.TriggeredBy, r.UpdatedAt.UTC().Format(time.RFC3339),
 		)
 	}
 

@@ -24,6 +24,7 @@ import (
 	"os"
 	"strconv"
 	"text/tabwriter"
+	"time"
 
 	"github.com/datarobot/cli/internal/pipelines"
 	"github.com/datarobot/cli/tui"
@@ -49,8 +50,8 @@ func PrintScheduleHuman(s pipelines.Schedule) {
 	fmt.Println(tui.BaseTextStyle.Render("Cron:         " + s.CronExpression))
 	fmt.Println(tui.BaseTextStyle.Render("Timezone:     " + s.Timezone))
 	fmt.Println(tui.BaseTextStyle.Render("Status:       " + string(s.Status)))
-	fmt.Println(tui.DimStyle.Render("Created:      " + s.CreatedAt))
-	fmt.Println(tui.DimStyle.Render("Updated:      " + s.UpdatedAt))
+	fmt.Println(tui.DimStyle.Render("Created:      " + s.CreatedAt.UTC().Format(time.RFC3339)))
+	fmt.Println(tui.DimStyle.Render("Updated:      " + s.UpdatedAt.UTC().Format(time.RFC3339)))
 }
 
 // PrintScheduleListJSON marshals a list of schedules as indented JSON.
@@ -79,7 +80,7 @@ func PrintScheduleListHuman(items []pipelines.Schedule) {
 
 	for _, s := range items {
 		fmt.Fprintf(writer, "%s\tv%d\t%s\t%s\t%s\t%s\n",
-			s.ScheduleID, s.Version, s.CronExpression, s.Timezone, s.Status, s.UpdatedAt,
+			s.ScheduleID, s.Version, s.CronExpression, s.Timezone, s.Status, s.UpdatedAt.UTC().Format(time.RFC3339),
 		)
 	}
 

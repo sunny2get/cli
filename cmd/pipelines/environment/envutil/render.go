@@ -25,6 +25,7 @@ import (
 	"strconv"
 	"strings"
 	"text/tabwriter"
+	"time"
 
 	"github.com/datarobot/cli/internal/pipelines"
 	"github.com/datarobot/cli/tui"
@@ -47,8 +48,8 @@ func PrintEnvironmentHuman(env pipelines.Environment) {
 	fmt.Println(tui.BaseTextStyle.Render("Name:           " + env.Name))
 	fmt.Println(tui.BaseTextStyle.Render("Description:    " + desc))
 	fmt.Println(tui.BaseTextStyle.Render("Latest version: v" + strconv.Itoa(env.LatestVersion)))
-	fmt.Println(tui.DimStyle.Render("Created:        " + env.CreatedAt))
-	fmt.Println(tui.DimStyle.Render("Updated:        " + env.UpdatedAt))
+	fmt.Println(tui.DimStyle.Render("Created:        " + env.CreatedAt.UTC().Format(time.RFC3339)))
+	fmt.Println(tui.DimStyle.Render("Updated:        " + env.UpdatedAt.UTC().Format(time.RFC3339)))
 
 	if len(env.Versions) == 0 {
 		return
@@ -63,7 +64,7 @@ func PrintEnvironmentHuman(env pipelines.Environment) {
 
 	for _, ver := range env.Versions {
 		fmt.Fprintf(writer, "v%d\t%s\t%s\t%s\n",
-			ver.Version, ver.Status, joinPackages(ver.Packages), ver.UpdatedAt,
+			ver.Version, ver.Status, joinPackages(ver.Packages), ver.UpdatedAt.UTC().Format(time.RFC3339),
 		)
 	}
 
@@ -89,7 +90,7 @@ func PrintEnvironmentListHuman(items []pipelines.EnvironmentSummary) {
 
 	for _, env := range items {
 		fmt.Fprintf(writer, "%s\t%s\tv%d\t%s\t%s\n",
-			env.EnvironmentID, env.Name, env.LatestVersion, env.LatestStatus, env.UpdatedAt,
+			env.EnvironmentID, env.Name, env.LatestVersion, env.LatestStatus, env.UpdatedAt.UTC().Format(time.RFC3339),
 		)
 	}
 

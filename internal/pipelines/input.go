@@ -22,6 +22,7 @@ import (
 	"net/http"
 	"net/url"
 	"strconv"
+	"time"
 )
 
 // InputState mirrors PipelineInputState in the pipelines-api enums.
@@ -40,8 +41,8 @@ type Input struct {
 	IsDraft    bool           `json:"is_draft"`
 	Payload    map[string]any `json:"payload"`
 	State      InputState     `json:"state"`
-	CreatedAt  string         `json:"created_at"`
-	UpdatedAt  string         `json:"updated_at"`
+	CreatedAt  time.Time      `json:"created_at"`
+	UpdatedAt  time.Time      `json:"updated_at"`
 }
 
 // InputCreateRequest mirrors PipelineInputCreateRequest.

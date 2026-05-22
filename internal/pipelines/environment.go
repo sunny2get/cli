@@ -33,6 +33,7 @@ import (
 	"net/http"
 	"net/url"
 	"strconv"
+	"time"
 
 	"github.com/datarobot/cli/internal/config"
 )
@@ -52,8 +53,8 @@ type EnvironmentVersion struct {
 	Packages    []string          `json:"packages"`
 	Status      EnvironmentStatus `json:"status"`
 	ErrorDetail *string           `json:"error_detail,omitempty"`
-	CreatedAt   string            `json:"created_at"`
-	UpdatedAt   string            `json:"updated_at"`
+	CreatedAt   time.Time         `json:"created_at"`
+	UpdatedAt   time.Time         `json:"updated_at"`
 }
 
 // Environment mirrors PipelineEnvironmentResponse (full detail).
@@ -63,8 +64,8 @@ type Environment struct {
 	Description   *string              `json:"description,omitempty"`
 	LatestVersion int                  `json:"latest_version"`
 	Versions      []EnvironmentVersion `json:"versions"`
-	CreatedAt     string               `json:"created_at"`
-	UpdatedAt     string               `json:"updated_at"`
+	CreatedAt     time.Time            `json:"created_at"`
+	UpdatedAt     time.Time            `json:"updated_at"`
 }
 
 // EnvironmentSummary mirrors PipelineEnvironmentSummaryResponse (list item).
@@ -74,8 +75,8 @@ type EnvironmentSummary struct {
 	Description   *string           `json:"description,omitempty"`
 	LatestVersion int               `json:"latest_version"`
 	LatestStatus  EnvironmentStatus `json:"latest_status"`
-	CreatedAt     string            `json:"created_at"`
-	UpdatedAt     string            `json:"updated_at"`
+	CreatedAt     time.Time         `json:"created_at"`
+	UpdatedAt     time.Time         `json:"updated_at"`
 }
 
 // EnvironmentCreateRequest mirrors PipelineEnvironmentCreateRequest.
