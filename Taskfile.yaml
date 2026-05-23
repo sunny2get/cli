@@ -162,7 +162,7 @@ tasks:
       DEMO_DIR: '{{default "/Users/sunnypal.sharma/Desktop/tests/pipelines-api" .DEMO_DIR}}'
       DELAY_FLAG: '{{if .DELAY}}--delay={{.DELAY}}{{end}}'
     env:
-      DATAROBOT_CLI_FEATURE_PIPELINES: "true"
+      DATAROBOT_CLI_FEATURE_PIPELINE: "true"
       DATAROBOT_CLI_ENDPOINT: "http://localhost:8100/api/v2"
       DATAROBOT_CLI_TOKEN: "local"
       DATAROBOT_CLI_SKIP_AUTH: "true"

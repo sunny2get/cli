@@ -41,7 +41,7 @@ These flags are available for all commands:
 | [`dotenv`](dotenv.md)   | Manage environment variables.                       |
 | [`self`](self.md)       | CLI utility commands (update, version, completion, plugin). |
 | [`plugin`](plugins.md)  | Inspect and manage CLI plugins.                     |
-| [`pipelines`](pipelines.md) | Manage pipelines via the pipelines API (feature-gated). |
+| [`pipeline`](pipeline.md) | Manage pipelines via the pipelines API (feature-gated). |
 | [`dependencies`](dependencies.md) | Check and install template dependencies (advanced). |
 
 ### Command tree
@@ -272,7 +272,7 @@ For detailed documentation on each command, see:
 
 - **[plugin](plugins.md)**&mdash;inspect and manage installed CLI plugins (alias: `plugins`).
 
-- **[pipelines](pipelines.md)**&mdash;manage AI/ML pipelines orchestrated by Covalent (feature-gated behind `DATAROBOT_CLI_FEATURE_PIPELINES=true`). See the [pipelines reference](pipelines-reference.md) for an exhaustive endpoint mapping.
+- **[pipeline](pipeline.md)**&mdash;manage AI/ML pipelines orchestrated by Covalent (feature-gated behind `DATAROBOT_CLI_FEATURE_PIPELINE=true`). See the [pipeline reference](pipeline-reference.md) for an exhaustive endpoint mapping.
   - `create`&mdash;upload a Python file to register a new pipeline.
   - `list`&mdash;list pipelines with mode filtering and pagination.
   - `get`&mdash;display full details of a pipeline including all versions.
