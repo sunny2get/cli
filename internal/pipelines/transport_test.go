@@ -22,8 +22,8 @@ import (
 	"testing"
 
 	"github.com/datarobot/cli/internal/config"
+	"github.com/datarobot/cli/internal/config/viperx"
 	"github.com/datarobot/cli/internal/drapi"
-	"github.com/spf13/viper"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )
@@ -34,15 +34,15 @@ import (
 func installSkipAuth(t *testing.T) {
 	t.Helper()
 
-	prevSkip := viper.GetBool("skip_auth")
-	prevTok := viper.GetString(config.DataRobotAPIKey)
+	prevSkip := viperx.GetBool("skip_auth")
+	prevTok := viperx.GetString(config.DataRobotAPIKey)
 
-	viper.Set("skip_auth", true)
-	viper.Set(config.DataRobotAPIKey, "test-token")
+	viperx.Set("skip_auth", true)
+	viperx.Set(config.DataRobotAPIKey, "test-token")
 
 	t.Cleanup(func() {
-		viper.Set("skip_auth", prevSkip)
-		viper.Set(config.DataRobotAPIKey, prevTok)
+		viperx.Set("skip_auth", prevSkip)
+		viperx.Set(config.DataRobotAPIKey, prevTok)
 	})
 }
 

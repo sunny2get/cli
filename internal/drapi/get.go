@@ -22,8 +22,8 @@ import (
 	"time"
 
 	"github.com/datarobot/cli/internal/config"
+	"github.com/datarobot/cli/internal/config/viperx"
 	"github.com/datarobot/cli/internal/log"
-	"github.com/spf13/viper"
 )
 
 // HTTPError is returned by Get when the server responds with a non-200 status code.
@@ -50,34 +50,22 @@ func SetToken(value string) {
 	token = value
 }
 
-const DefaultGetTimeoutSecs = 30
-
 // resolveToken returns the API token used for outbound requests.
 // When --skip-auth (or DATAROBOT_CLI_SKIP_AUTH) is active we trust whatever
 // is in viper without contacting the server, so local development against
 // stub APIs that don't implement /version/ still works.
 func resolveToken() (string, error) {
-	if viper.GetBool("skip_auth") {
-		return viper.GetString(config.DataRobotAPIKey), nil
+	if viperx.GetBool("skip_auth") {
+		return viperx.GetString(config.DataRobotAPIKey), nil
 	}
 
 	return config.GetAPIKey(context.Background())
 }
 
 func Get(url, info string, timeoutSecs ...int) (*http.Response, error) {
-	timeout := DefaultGetTimeoutSecs
+	timeout := DefaultClientTimeout
 	if len(timeoutSecs) > 0 {
-		timeout = timeoutSecs[0]
-	}
-
-	var err error
-
-	// memoize token to avoid extra VerifyToken() calls
-	if token == "" {
-		token, err = resolveToken()
-		if err != nil {
-			return nil, err
-		}
+		timeout = time.Duration(timeoutSecs[0]) * time.Second
 	}
 
 	req, err := http.NewRequest(http.MethodGet, url, nil)
@@ -85,11 +73,8 @@ func Get(url, info string, timeoutSecs ...int) (*http.Response, error) {
 		return nil, err
 	}
 
-	req.Header.Add("Authorization", "Bearer "+token)
-	req.Header.Add("User-Agent", config.GetUserAgentHeader())
-
-	if config.IsAPIConsumerTrackingEnabled() {
-		req.Header.Add("X-DataRobot-Api-Consumer-Trace", config.GetAPIConsumerTrace())
+	if err = AuthorizeRequest(req); err != nil {
+		return nil, err
 	}
 
 	if info != "" {
@@ -98,11 +83,7 @@ func Get(url, info string, timeoutSecs ...int) (*http.Response, error) {
 
 	log.Debug("Request Info: \n" + config.RedactedReqInfo(req))
 
-	client := &http.Client{
-		Timeout: time.Duration(timeout) * time.Second,
-	}
-
-	resp, err := client.Do(req)
+	resp, err := NewHTTPClient(timeout).Do(req)
 	if err != nil {
 		return nil, err
 	}

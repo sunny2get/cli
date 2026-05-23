@@ -20,7 +20,7 @@ import (
 	"time"
 
 	"github.com/datarobot/cli/internal/config"
-	"github.com/spf13/viper"
+	"github.com/datarobot/cli/internal/config/viperx"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )
@@ -45,15 +45,15 @@ func resetTokenCache(t *testing.T) {
 func withSkipAuth(t *testing.T, value string) string {
 	t.Helper()
 
-	prevSkip := viper.GetBool("skip_auth")
-	prevKey := viper.GetString(config.DataRobotAPIKey)
+	prevSkip := viperx.GetBool("skip_auth")
+	prevKey := viperx.GetString(config.DataRobotAPIKey)
 
-	viper.Set("skip_auth", true)
-	viper.Set(config.DataRobotAPIKey, value)
+	viperx.Set("skip_auth", true)
+	viperx.Set(config.DataRobotAPIKey, value)
 
 	t.Cleanup(func() {
-		viper.Set("skip_auth", prevSkip)
-		viper.Set(config.DataRobotAPIKey, prevKey)
+		viperx.Set("skip_auth", prevSkip)
+		viperx.Set(config.DataRobotAPIKey, prevKey)
 	})
 
 	return value
@@ -82,7 +82,7 @@ func TestGetToken_ResolvesAndMemoizes(t *testing.T) {
 	// Mutating viper after the cache is populated should NOT change what
 	// getToken returns — the value is memoized for the lifetime of the
 	// process.
-	viper.Set(config.DataRobotAPIKey, "different")
+	viperx.Set(config.DataRobotAPIKey, "different")
 
 	cached, err := getToken()
 	require.NoError(t, err)

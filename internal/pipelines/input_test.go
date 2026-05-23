@@ -21,7 +21,7 @@ import (
 	"testing"
 
 	"github.com/datarobot/cli/internal/config"
-	"github.com/spf13/viper"
+	"github.com/datarobot/cli/internal/config/viperx"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )
@@ -31,12 +31,12 @@ import (
 func installEndpoint(t *testing.T, url string) {
 	t.Helper()
 
-	prev := viper.GetString(config.DataRobotURL)
+	prev := viperx.GetString(config.DataRobotURL)
 
-	viper.Set(config.DataRobotURL, url)
+	viperx.Set(config.DataRobotURL, url)
 
 	t.Cleanup(func() {
-		viper.Set(config.DataRobotURL, prev)
+		viperx.Set(config.DataRobotURL, prev)
 	})
 }
 
