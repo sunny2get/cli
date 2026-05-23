@@ -35,7 +35,6 @@ import (
 type versionJSON struct {
 	Version        int            `json:"version"`
 	Status         string         `json:"status"`
-	PipelineName   string         `json:"pipeline_name"`
 	TaskNames      []string       `json:"task_names,omitempty"`
 	PythonVersion  string         `json:"python_version,omitempty"`
 	ResourceBundle map[string]any `json:"resource_bundle,omitempty"`
@@ -47,7 +46,6 @@ func toVersionJSON(v PipelineVersion) versionJSON {
 	return versionJSON{
 		Version:        v.Version,
 		Status:         v.Status,
-		PipelineName:   v.PipelineName,
 		TaskNames:      v.TaskNames,
 		PythonVersion:  v.PythonVersion,
 		ResourceBundle: v.ResourceBundle,
@@ -105,7 +103,6 @@ func PrintVersionHuman(v PipelineVersion) {
 	w := tabwriter.NewWriter(os.Stdout, 0, 0, 2, ' ', 0)
 
 	fmt.Fprintf(w, "Version:\tv%s\n", strconv.Itoa(v.Version))
-	fmt.Fprintf(w, "Pipeline:\t%s\n", v.PipelineName)
 	fmt.Fprintf(w, "Status:\t%s\n", v.Status)
 	fmt.Fprintf(w, "Python Version:\t%s\n", python)
 	fmt.Fprintf(w, "Tasks:\t%s\n", tasks)

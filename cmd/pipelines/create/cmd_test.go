@@ -71,7 +71,7 @@ func TestPrintCreateJSON(t *testing.T) {
 
 	err := json.Unmarshal([]byte(output), &parsed)
 	require.NoError(t, err)
-	assert.Equal(t, resp.PipelineID, parsed["pipeline_id"])
+	assert.Equal(t, resp.PipelineID, parsed["id"])
 	assert.Equal(t, resp.Name, parsed["name"])
 	assert.Equal(t, "READY", parsed["status"])
 	assert.Equal(t, "draft", parsed["mode"])

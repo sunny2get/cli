@@ -67,7 +67,7 @@ func TestPrintLockJSON(t *testing.T) {
 	var parsed map[string]any
 
 	require.NoError(t, json.Unmarshal([]byte(output), &parsed))
-	assert.Equal(t, "abc", parsed["pipeline_id"])
+	assert.Equal(t, "abc", parsed["id"])
 	assert.Equal(t, "locked", parsed["mode"])
 	assert.EqualValues(t, 3, parsed["version"])
 }

@@ -71,7 +71,7 @@ func TestPrintUpdateJSON(t *testing.T) {
 
 	err := json.Unmarshal([]byte(output), &parsed)
 	require.NoError(t, err)
-	assert.Equal(t, resp.PipelineID, parsed["pipeline_id"])
+	assert.Equal(t, resp.PipelineID, parsed["id"])
 	assert.EqualValues(t, 2, parsed["version"])
 	assert.Equal(t, "READY", parsed["status"])
 }

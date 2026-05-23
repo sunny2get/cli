@@ -61,7 +61,6 @@ func samplePipeline() pipelines.Pipeline {
 			{
 				Version:       1,
 				Status:        "READY",
-				PipelineName:  "confluence_to_vdb",
 				TaskNames:     []string{"create_vector_database", "ingest_confluence_files"},
 				PythonVersion: "3.12",
 				CreatedAt:     time.Date(2026, 4, 28, 11, 42, 28, 0, time.UTC),
@@ -69,7 +68,6 @@ func samplePipeline() pipelines.Pipeline {
 			{
 				Version:       2,
 				Status:        "FAILED",
-				PipelineName:  "confluence_to_vdb",
 				PythonVersion: "3.12",
 				ErrorDetail:   "boom",
 				CreatedAt:     time.Date(2026, 4, 28, 12, 25, 11, 0, time.UTC),
@@ -86,7 +84,7 @@ func TestPrintGetJSON(t *testing.T) {
 		require.NoError(t, err)
 	})
 
-	assert.Contains(t, output, `"pipeline_id"`)
+	assert.Contains(t, output, `"id"`)
 	assert.Contains(t, output, "confluence_to_vdb")
 	assert.Contains(t, output, `"versions"`)
 }

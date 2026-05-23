@@ -51,9 +51,9 @@ func intPtr(v int) *int {
 	return &v
 }
 
-func sampleListResponse() pipelines.ListResponse {
-	return pipelines.ListResponse{
-		Items: []pipelines.ListItem{
+func sampleListResponse() pipelines.DataPage[pipelines.ListItem] {
+	return pipelines.DataPage[pipelines.ListItem]{
+		Data: []pipelines.ListItem{
 			{
 				PipelineID:    "683c2a1b4f8e1a2b3c4d5e6f",
 				Name:          "confluence_to_vdb",
@@ -64,9 +64,8 @@ func sampleListResponse() pipelines.ListResponse {
 				UpdatedAt:     time.Date(2026, 4, 28, 12, 25, 11, 0, time.UTC),
 			},
 		},
-		Total:  1,
-		Offset: 0,
-		Limit:  50,
+		TotalCount: 1,
+		Count:      1,
 	}
 }
 
@@ -78,24 +77,20 @@ func TestPrintListJSON(t *testing.T) {
 		require.NoError(t, err)
 	})
 
-	var parsed map[string]interface{}
+	var parsed []interface{}
 
 	err := json.Unmarshal([]byte(output), &parsed)
 	require.NoError(t, err)
-	assert.EqualValues(t, 1, parsed["total"])
+	require.Len(t, parsed, 1)
 
-	items, ok := parsed["items"].([]interface{})
-	require.True(t, ok)
-	require.Len(t, items, 1)
-
-	item := items[0].(map[string]interface{})
+	item := parsed[0].(map[string]interface{})
 	assert.Equal(t, "confluence_to_vdb", item["name"])
 	assert.Equal(t, "draft", item["mode"])
 }
 
 func TestPrintListHuman_Empty(t *testing.T) {
 	output := captureStdout(t, func() {
-		require.NoError(t, pipelines.RenderPipelines(pipelines.OutputFormatText, pipelines.ListResponse{Total: 0, Limit: 50}))
+		require.NoError(t, pipelines.RenderPipelines(pipelines.OutputFormatText, pipelines.DataPage[pipelines.ListItem]{}))
 	})
 
 	assert.Contains(t, output, "No pipelines found.")
@@ -125,7 +120,7 @@ func TestPrintListHuman_RendersHeaderAndRow(t *testing.T) {
 
 func TestPrintListHuman_NoLatestVersion(t *testing.T) {
 	list := sampleListResponse()
-	list.Items[0].LatestVersion = nil
+	list.Data[0].LatestVersion = nil
 
 	output := captureStdout(t, func() {
 		require.NoError(t, pipelines.RenderPipelines(pipelines.OutputFormatText, list))

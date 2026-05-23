@@ -74,7 +74,7 @@ func TestPrintGraphJSON(t *testing.T) {
 	pipeline, ok := parsed["lattice"].(map[string]any)
 	require.True(t, ok)
 	assert.Equal(t, "wf", pipeline["name"])
-	assert.Equal(t, "3.12", pipeline["python_version"])
+	assert.Equal(t, "3.12", pipeline["pythonVersion"])
 }
 
 func TestPrintGraphHuman(t *testing.T) {

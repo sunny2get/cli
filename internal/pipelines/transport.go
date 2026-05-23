@@ -108,6 +108,16 @@ func buildJSONRequest(method, endpoint string, body any) (*http.Request, error) 
 	return req, nil
 }
 
+// DataPage is the pagination envelope returned by all pipelines-api list endpoints
+// (action 056 — DataPage[T] convention).
+type DataPage[T any] struct {
+	Data       []T     `json:"data"`
+	TotalCount int     `json:"totalCount"`
+	Count      int     `json:"count"`
+	Next       *string `json:"next"`
+	Previous   *string `json:"previous"`
+}
+
 // doDelete sends a DELETE and treats any 2xx response as success. The
 // response body is drained but ignored.
 func doDelete(endpoint, info string) error {

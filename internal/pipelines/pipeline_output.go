@@ -47,12 +47,12 @@ func RenderPipeline(format OutputFormat, p Pipeline) error {
 }
 
 // RenderPipelines routes a pipeline list to JSON or human output.
-func RenderPipelines(format OutputFormat, list ListResponse) error {
+func RenderPipelines(format OutputFormat, page DataPage[ListItem]) error {
 	if format == OutputFormatJSON {
-		return printPipelinesJSON(list)
+		return printPipelinesJSON(page)
 	}
 
-	printPipelinesHuman(list)
+	printPipelinesHuman(page)
 
 	return nil
 }
@@ -79,8 +79,8 @@ func printPipelineJSON(p Pipeline) error {
 	return nil
 }
 
-func printPipelinesJSON(list ListResponse) error {
-	data, err := json.MarshalIndent(list, "", "  ")
+func printPipelinesJSON(page DataPage[ListItem]) error {
+	data, err := json.MarshalIndent(page.Data, "", "  ")
 	if err != nil {
 		return err
 	}
@@ -101,14 +101,14 @@ func printCreateResponseJSON(result CreateResponse) error {
 	return nil
 }
 
-func printPipelinesHuman(list ListResponse) {
-	if len(list.Items) == 0 {
+func printPipelinesHuman(page DataPage[ListItem]) {
+	if len(page.Data) == 0 {
 		fmt.Println(tui.DimStyle.Render("No pipelines found."))
 
 		return
 	}
 
-	fmt.Println(tui.BaseTextStyle.Render(fmt.Sprintf("Showing %d of %d (offset=%d limit=%d)", len(list.Items), list.Total, list.Offset, list.Limit)))
+	fmt.Println(tui.BaseTextStyle.Render(fmt.Sprintf("Showing %d of %d", len(page.Data), page.TotalCount)))
 	fmt.Println()
 
 	cellStyle := tui.BaseTextStyle.Padding(0, 1)
@@ -135,7 +135,7 @@ func printPipelinesHuman(list ListResponse) {
 		}).
 		Headers(headers...)
 
-	for _, item := range list.Items {
+	for _, item := range page.Data {
 		latest := emptyValuePlaceholder
 		if item.LatestVersion != nil {
 			latest = "v" + strconv.Itoa(*item.LatestVersion)
