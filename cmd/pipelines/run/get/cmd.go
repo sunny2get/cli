@@ -19,8 +19,6 @@ import (
 	"fmt"
 	"net/http"
 
-	"github.com/datarobot/cli/cmd/pipelines/outputfmt"
-	"github.com/datarobot/cli/cmd/pipelines/run/runutil"
 	"github.com/datarobot/cli/cmd/pipelines/scopeflag"
 	"github.com/datarobot/cli/internal/auth"
 	"github.com/datarobot/cli/internal/drapi"
@@ -32,7 +30,7 @@ import (
 func Cmd() *cobra.Command {
 	var (
 		flags        scopeflag.Flags
-		outputFormat outputfmt.OutputFormat
+		outputFormat pipelines.OutputFormat
 	)
 
 	cmd := &cobra.Command{
@@ -61,12 +59,12 @@ Example:
 				return handleGetError(err, args[0])
 			}
 
-			return runutil.RenderRun(outputFormat, *result)
+			return pipelines.RenderRun(outputFormat, *result)
 		},
 	}
 
 	flags.Bind(cmd)
-	outputfmt.AddOutputFlag(cmd, &outputFormat)
+	pipelines.AddOutputFlag(cmd, &outputFormat)
 
 	return cmd
 }

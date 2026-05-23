@@ -12,9 +12,9 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-// Package pipelineutil holds the rendering helpers shared by the top-level
+// pipeline_output.go holds the rendering helpers shared by the top-level
 // `dr pipelines` verbs (list, get, create, update, lock).
-package pipelineutil
+package pipelines
 
 import (
 	"encoding/json"
@@ -27,8 +27,6 @@ import (
 
 	"github.com/charmbracelet/lipgloss"
 	"github.com/charmbracelet/lipgloss/table"
-	"github.com/datarobot/cli/cmd/pipelines/outputfmt"
-	"github.com/datarobot/cli/internal/pipelines"
 	"github.com/datarobot/cli/tui"
 )
 
@@ -38,8 +36,8 @@ const (
 )
 
 // RenderPipeline routes a single pipeline to JSON or human output.
-func RenderPipeline(format outputfmt.OutputFormat, p pipelines.Pipeline) error {
-	if format == outputfmt.OutputFormatJSON {
+func RenderPipeline(format OutputFormat, p Pipeline) error {
+	if format == OutputFormatJSON {
 		return printPipelineJSON(p)
 	}
 
@@ -49,8 +47,8 @@ func RenderPipeline(format outputfmt.OutputFormat, p pipelines.Pipeline) error {
 }
 
 // RenderPipelines routes a pipeline list to JSON or human output.
-func RenderPipelines(format outputfmt.OutputFormat, list pipelines.ListResponse) error {
-	if format == outputfmt.OutputFormatJSON {
+func RenderPipelines(format OutputFormat, list ListResponse) error {
+	if format == OutputFormatJSON {
 		return printPipelinesJSON(list)
 	}
 
@@ -60,8 +58,8 @@ func RenderPipelines(format outputfmt.OutputFormat, list pipelines.ListResponse)
 }
 
 // RenderCreateResponse routes a CreateResponse to JSON or human output.
-func RenderCreateResponse(format outputfmt.OutputFormat, result pipelines.CreateResponse) error {
-	if format == outputfmt.OutputFormatJSON {
+func RenderCreateResponse(format OutputFormat, result CreateResponse) error {
+	if format == OutputFormatJSON {
 		return printCreateResponseJSON(result)
 	}
 
@@ -70,7 +68,7 @@ func RenderCreateResponse(format outputfmt.OutputFormat, result pipelines.Create
 	return nil
 }
 
-func printPipelineJSON(p pipelines.Pipeline) error {
+func printPipelineJSON(p Pipeline) error {
 	data, err := json.MarshalIndent(p, "", "  ")
 	if err != nil {
 		return err
@@ -81,7 +79,7 @@ func printPipelineJSON(p pipelines.Pipeline) error {
 	return nil
 }
 
-func printPipelinesJSON(list pipelines.ListResponse) error {
+func printPipelinesJSON(list ListResponse) error {
 	data, err := json.MarshalIndent(list, "", "  ")
 	if err != nil {
 		return err
@@ -92,7 +90,7 @@ func printPipelinesJSON(list pipelines.ListResponse) error {
 	return nil
 }
 
-func printCreateResponseJSON(result pipelines.CreateResponse) error {
+func printCreateResponseJSON(result CreateResponse) error {
 	data, err := json.MarshalIndent(result, "", "  ")
 	if err != nil {
 		return err
@@ -103,7 +101,7 @@ func printCreateResponseJSON(result pipelines.CreateResponse) error {
 	return nil
 }
 
-func printPipelinesHuman(list pipelines.ListResponse) {
+func printPipelinesHuman(list ListResponse) {
 	if len(list.Items) == 0 {
 		fmt.Println(tui.DimStyle.Render("No pipelines found."))
 
@@ -152,7 +150,7 @@ func printPipelinesHuman(list pipelines.ListResponse) {
 	fmt.Fprintln(os.Stdout, t.Render())
 }
 
-func printPipelineHuman(p pipelines.Pipeline) {
+func printPipelineHuman(p Pipeline) {
 	description := emptyValuePlaceholder
 	if p.Description != "" {
 		description = p.Description
@@ -232,7 +230,7 @@ func printPipelineHuman(p pipelines.Pipeline) {
 	}
 }
 
-func printCreateResponseHuman(result pipelines.CreateResponse) {
+func printCreateResponseHuman(result CreateResponse) {
 	tasks := emptyValuePlaceholder
 	if len(result.TaskNames) > 0 {
 		tasks = strings.Join(result.TaskNames, ", ")

@@ -17,8 +17,6 @@ package create
 import (
 	"errors"
 
-	"github.com/datarobot/cli/cmd/pipelines/outputfmt"
-	"github.com/datarobot/cli/cmd/pipelines/schedule/scheduleutil"
 	"github.com/datarobot/cli/internal/auth"
 	"github.com/datarobot/cli/internal/pipelines"
 	"github.com/spf13/cobra"
@@ -31,7 +29,7 @@ func Cmd() *cobra.Command {
 		cron         string
 		inputID      string
 		timezone     string
-		outputFormat outputfmt.OutputFormat
+		outputFormat pipelines.OutputFormat
 	)
 
 	cmd := &cobra.Command{
@@ -73,7 +71,7 @@ Example:
 				return err
 			}
 
-			return scheduleutil.RenderSchedule(outputFormat, *result)
+			return pipelines.RenderSchedule(outputFormat, *result)
 		},
 	}
 
@@ -82,7 +80,7 @@ Example:
 	cmd.Flags().StringVar(&cron, "cron", "", "Cron expression, e.g. \"0 * * * *\"")
 	cmd.Flags().StringVar(&inputID, "input", "", "Input ID to run on each tick")
 	cmd.Flags().StringVar(&timezone, "timezone", "", "IANA timezone name (default UTC)")
-	outputfmt.AddOutputFlag(cmd, &outputFormat)
+	pipelines.AddOutputFlag(cmd, &outputFormat)
 
 	return cmd
 }

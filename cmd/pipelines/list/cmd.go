@@ -17,8 +17,6 @@ package list
 import (
 	"fmt"
 
-	"github.com/datarobot/cli/cmd/pipelines/outputfmt"
-	"github.com/datarobot/cli/cmd/pipelines/pipelineutil"
 	"github.com/datarobot/cli/internal/auth"
 	"github.com/datarobot/cli/internal/pipelines"
 	"github.com/spf13/cobra"
@@ -29,7 +27,7 @@ func Cmd() *cobra.Command {
 		mode         string
 		offset       int
 		limit        int
-		outputFormat outputfmt.OutputFormat
+		outputFormat pipelines.OutputFormat
 	)
 
 	cmd := &cobra.Command{
@@ -55,14 +53,14 @@ Example:
 				return err
 			}
 
-			return pipelineutil.RenderPipelines(outputFormat, *list)
+			return pipelines.RenderPipelines(outputFormat, *list)
 		},
 	}
 
 	cmd.Flags().StringVar(&mode, "mode", "", "Filter by mode: draft or locked")
 	cmd.Flags().IntVar(&offset, "offset", 0, "Pagination offset")
 	cmd.Flags().IntVar(&limit, "limit", 50, "Pagination limit (1-200)")
-	outputfmt.AddOutputFlag(cmd, &outputFormat)
+	pipelines.AddOutputFlag(cmd, &outputFormat)
 
 	return cmd
 }

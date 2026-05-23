@@ -17,8 +17,6 @@ package list
 import (
 	"errors"
 
-	"github.com/datarobot/cli/cmd/pipelines/outputfmt"
-	"github.com/datarobot/cli/cmd/pipelines/schedule/scheduleutil"
 	"github.com/datarobot/cli/internal/auth"
 	"github.com/datarobot/cli/internal/pipelines"
 	"github.com/spf13/cobra"
@@ -30,7 +28,7 @@ func Cmd() *cobra.Command {
 		version      int
 		offset       int
 		limit        int
-		outputFormat outputfmt.OutputFormat
+		outputFormat pipelines.OutputFormat
 	)
 
 	cmd := &cobra.Command{
@@ -58,7 +56,7 @@ Example:
 				return err
 			}
 
-			return scheduleutil.RenderSchedules(outputFormat, items)
+			return pipelines.RenderSchedules(outputFormat, items)
 		},
 	}
 
@@ -66,7 +64,7 @@ Example:
 	cmd.Flags().IntVar(&version, "version", 0, "Locked pipeline version")
 	cmd.Flags().IntVar(&offset, "offset", 0, "Pagination offset")
 	cmd.Flags().IntVar(&limit, "limit", 0, "Maximum number of schedules to return")
-	outputfmt.AddOutputFlag(cmd, &outputFormat)
+	pipelines.AddOutputFlag(cmd, &outputFormat)
 
 	return cmd
 }

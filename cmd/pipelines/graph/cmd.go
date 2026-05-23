@@ -23,7 +23,6 @@ import (
 	"strconv"
 	"text/tabwriter"
 
-	"github.com/datarobot/cli/cmd/pipelines/outputfmt"
 	"github.com/datarobot/cli/cmd/pipelines/scopeflag"
 	"github.com/datarobot/cli/internal/auth"
 	"github.com/datarobot/cli/internal/drapi"
@@ -35,7 +34,7 @@ import (
 func Cmd() *cobra.Command {
 	var (
 		flags        scopeflag.Flags
-		outputFormat outputfmt.OutputFormat
+		outputFormat pipelines.OutputFormat
 	)
 
 	cmd := &cobra.Command{
@@ -71,7 +70,7 @@ Example:
 				return handleGraphError(err, flags.PipelineID)
 			}
 
-			if outputFormat == outputfmt.OutputFormatJSON {
+			if outputFormat == pipelines.OutputFormatJSON {
 				return printGraphJSON(*result)
 			}
 
@@ -82,7 +81,7 @@ Example:
 	}
 
 	flags.Bind(cmd)
-	outputfmt.AddOutputFlag(cmd, &outputFormat)
+	pipelines.AddOutputFlag(cmd, &outputFormat)
 
 	return cmd
 }

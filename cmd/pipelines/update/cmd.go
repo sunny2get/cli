@@ -17,8 +17,6 @@ package update
 import (
 	"errors"
 
-	"github.com/datarobot/cli/cmd/pipelines/outputfmt"
-	"github.com/datarobot/cli/cmd/pipelines/pipelineutil"
 	"github.com/datarobot/cli/internal/auth"
 	"github.com/datarobot/cli/internal/pipelines"
 	"github.com/spf13/cobra"
@@ -26,7 +24,7 @@ import (
 
 func Cmd() *cobra.Command {
 	var (
-		outputFormat outputfmt.OutputFormat
+		outputFormat pipelines.OutputFormat
 		fromFile     string
 	)
 
@@ -63,12 +61,12 @@ Example:
 				return err
 			}
 
-			return pipelineutil.RenderCreateResponse(outputFormat, *result)
+			return pipelines.RenderCreateResponse(outputFormat, *result)
 		},
 	}
 
 	cmd.Flags().StringVar(&fromFile, "from-file", "", "Path to the Python file to upload, e.g. --from-file=./my_pipeline.py (alternative to the positional argument)")
-	outputfmt.AddOutputFlag(cmd, &outputFormat)
+	pipelines.AddOutputFlag(cmd, &outputFormat)
 
 	return cmd
 }

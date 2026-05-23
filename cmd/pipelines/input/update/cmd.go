@@ -17,8 +17,6 @@ package update
 import (
 	"errors"
 
-	"github.com/datarobot/cli/cmd/pipelines/input/inpututil"
-	"github.com/datarobot/cli/cmd/pipelines/outputfmt"
 	"github.com/datarobot/cli/internal/auth"
 	"github.com/datarobot/cli/internal/pipelines"
 	"github.com/spf13/cobra"
@@ -28,7 +26,7 @@ func Cmd() *cobra.Command {
 	var (
 		pipelineID   string
 		fromFile     string
-		outputFormat outputfmt.OutputFormat
+		outputFormat pipelines.OutputFormat
 	)
 
 	cmd := &cobra.Command{
@@ -53,7 +51,7 @@ Example:
 
 			inputID := args[0]
 
-			payload, err := inpututil.ResolvePayload(args[1:], fromFile)
+			payload, err := pipelines.ResolvePayload(args[1:], fromFile)
 			if err != nil {
 				return err
 			}
@@ -63,13 +61,13 @@ Example:
 				return err
 			}
 
-			return inpututil.RenderInput(outputFormat, *result)
+			return pipelines.RenderInput(outputFormat, *result)
 		},
 	}
 
 	cmd.Flags().StringVar(&pipelineID, "pipeline", "", "Pipeline ID")
 	cmd.Flags().StringVar(&fromFile, "from-file", "", "Path to the JSON payload file, e.g. --from-file=./payload.json (alternative to the positional argument)")
-	outputfmt.AddOutputFlag(cmd, &outputFormat)
+	pipelines.AddOutputFlag(cmd, &outputFormat)
 
 	return cmd
 }

@@ -15,8 +15,6 @@
 package list
 
 import (
-	"github.com/datarobot/cli/cmd/pipelines/environment/envutil"
-	"github.com/datarobot/cli/cmd/pipelines/outputfmt"
 	"github.com/datarobot/cli/internal/auth"
 	"github.com/datarobot/cli/internal/pipelines"
 	"github.com/spf13/cobra"
@@ -26,7 +24,7 @@ func Cmd() *cobra.Command {
 	var (
 		offset       int
 		limit        int
-		outputFormat outputfmt.OutputFormat
+		outputFormat pipelines.OutputFormat
 	)
 
 	cmd := &cobra.Command{
@@ -50,13 +48,13 @@ Example:
 				return err
 			}
 
-			return envutil.RenderEnvironments(outputFormat, items)
+			return pipelines.RenderEnvironments(outputFormat, items)
 		},
 	}
 
 	cmd.Flags().IntVar(&offset, "offset", 0, "Pagination offset")
 	cmd.Flags().IntVar(&limit, "limit", 0, "Maximum number of environments to return")
-	outputfmt.AddOutputFlag(cmd, &outputFormat)
+	pipelines.AddOutputFlag(cmd, &outputFormat)
 
 	return cmd
 }

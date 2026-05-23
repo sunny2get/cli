@@ -22,8 +22,6 @@ import (
 	"testing"
 	"time"
 
-	"github.com/datarobot/cli/cmd/pipelines/outputfmt"
-	"github.com/datarobot/cli/cmd/pipelines/pipelineutil"
 	"github.com/datarobot/cli/internal/pipelines"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
@@ -65,7 +63,7 @@ func TestPrintCreateJSON(t *testing.T) {
 	resp := sampleCreateResponse()
 
 	output := captureStdout(t, func() {
-		err := pipelineutil.RenderCreateResponse(outputfmt.OutputFormatJSON, resp)
+		err := pipelines.RenderCreateResponse(pipelines.OutputFormatJSON, resp)
 		require.NoError(t, err)
 	})
 
@@ -84,7 +82,7 @@ func TestPrintCreateHuman_WithTasks(t *testing.T) {
 	resp := sampleCreateResponse()
 
 	output := captureStdout(t, func() {
-		require.NoError(t, pipelineutil.RenderCreateResponse(outputfmt.OutputFormatText, resp))
+		require.NoError(t, pipelines.RenderCreateResponse(pipelines.OutputFormatText, resp))
 	})
 
 	assert.Contains(t, output, resp.PipelineID)
@@ -100,7 +98,7 @@ func TestPrintCreateHuman_NoTasks(t *testing.T) {
 	resp.TaskNames = nil
 
 	output := captureStdout(t, func() {
-		require.NoError(t, pipelineutil.RenderCreateResponse(outputfmt.OutputFormatText, resp))
+		require.NoError(t, pipelines.RenderCreateResponse(pipelines.OutputFormatText, resp))
 	})
 
 	assert.Contains(t, output, "—")

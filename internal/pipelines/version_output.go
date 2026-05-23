@@ -12,11 +12,9 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-// Package versionutil contains rendering helpers shared by the
-// `dr pipelines version` verbs. Living in a sibling package keeps the
-// parent `version` package free of cycles.
-
-package versionutil
+// version_output.go contains rendering helpers shared by the
+// `dr pipelines version` verbs.
+package pipelines
 
 import (
 	"encoding/json"
@@ -30,14 +28,7 @@ import (
 
 	"github.com/charmbracelet/lipgloss"
 	"github.com/charmbracelet/lipgloss/table"
-	"github.com/datarobot/cli/cmd/pipelines/outputfmt"
-	"github.com/datarobot/cli/internal/pipelines"
 	"github.com/datarobot/cli/tui"
-)
-
-const (
-	timestampFormat       = "2006-01-02 15:04 UTC"
-	emptyValuePlaceholder = "—"
 )
 
 // versionJSON is the CLI-facing DTO used for `--output-format json`.
@@ -52,7 +43,7 @@ type versionJSON struct {
 	CreatedAt      string         `json:"created_at"`
 }
 
-func toVersionJSON(v pipelines.PipelineVersion) versionJSON {
+func toVersionJSON(v PipelineVersion) versionJSON {
 	return versionJSON{
 		Version:        v.Version,
 		Status:         v.Status,
@@ -66,8 +57,8 @@ func toVersionJSON(v pipelines.PipelineVersion) versionJSON {
 }
 
 // RenderVersion routes a single version to JSON or human output.
-func RenderVersion(format outputfmt.OutputFormat, v pipelines.PipelineVersion) error {
-	if format == outputfmt.OutputFormatJSON {
+func RenderVersion(format OutputFormat, v PipelineVersion) error {
+	if format == OutputFormatJSON {
 		return PrintVersionJSON(v)
 	}
 
@@ -77,8 +68,8 @@ func RenderVersion(format outputfmt.OutputFormat, v pipelines.PipelineVersion) e
 }
 
 // RenderVersions routes a list of versions to JSON or human output.
-func RenderVersions(format outputfmt.OutputFormat, items []pipelines.PipelineVersion) error {
-	if format == outputfmt.OutputFormatJSON {
+func RenderVersions(format OutputFormat, items []PipelineVersion) error {
+	if format == OutputFormatJSON {
 		return PrintVersionListJSON(items)
 	}
 
@@ -88,7 +79,7 @@ func RenderVersions(format outputfmt.OutputFormat, items []pipelines.PipelineVer
 }
 
 // PrintVersionJSON marshals a single version as indented JSON through the DTO.
-func PrintVersionJSON(v pipelines.PipelineVersion) error {
+func PrintVersionJSON(v PipelineVersion) error {
 	data, err := json.MarshalIndent(toVersionJSON(v), "", "  ")
 	if err != nil {
 		return err
@@ -100,7 +91,7 @@ func PrintVersionJSON(v pipelines.PipelineVersion) error {
 }
 
 // PrintVersionHuman renders the key facts about a single version.
-func PrintVersionHuman(v pipelines.PipelineVersion) {
+func PrintVersionHuman(v PipelineVersion) {
 	tasks := emptyValuePlaceholder
 	if len(v.TaskNames) > 0 {
 		tasks = strings.Join(v.TaskNames, ", ")
@@ -129,7 +120,7 @@ func PrintVersionHuman(v pipelines.PipelineVersion) {
 }
 
 // PrintVersionListJSON marshals a list of versions as indented JSON through the DTO.
-func PrintVersionListJSON(items []pipelines.PipelineVersion) error {
+func PrintVersionListJSON(items []PipelineVersion) error {
 	view := make([]versionJSON, len(items))
 
 	for i, v := range items {
@@ -147,7 +138,7 @@ func PrintVersionListJSON(items []pipelines.PipelineVersion) error {
 }
 
 // PrintVersionListHuman renders a lipgloss table summary of versions.
-func PrintVersionListHuman(items []pipelines.PipelineVersion) {
+func PrintVersionListHuman(items []PipelineVersion) {
 	if len(items) == 0 {
 		fmt.Println(tui.DimStyle.Render("No versions found"))
 

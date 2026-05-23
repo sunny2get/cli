@@ -18,8 +18,6 @@ import (
 	"errors"
 	"fmt"
 
-	"github.com/datarobot/cli/cmd/pipelines/outputfmt"
-	"github.com/datarobot/cli/cmd/pipelines/pipelineutil"
 	"github.com/datarobot/cli/internal/auth"
 	"github.com/datarobot/cli/internal/pipelines"
 	"github.com/spf13/cobra"
@@ -29,7 +27,7 @@ func Cmd() *cobra.Command {
 	var (
 		description  string
 		mode         string
-		outputFormat outputfmt.OutputFormat
+		outputFormat pipelines.OutputFormat
 		fromFile     string
 	)
 
@@ -66,14 +64,14 @@ Example:
 				return err
 			}
 
-			return pipelineutil.RenderCreateResponse(outputFormat, *result)
+			return pipelines.RenderCreateResponse(outputFormat, *result)
 		},
 	}
 
 	cmd.Flags().StringVar(&description, "description", "", "Optional description for the pipeline")
 	cmd.Flags().StringVar(&mode, "mode", "", "Pipeline mode: draft (default) or locked")
 	cmd.Flags().StringVar(&fromFile, "from-file", "", "Path to the Python file to upload, e.g. --from-file=./my_pipeline.py (alternative to the positional argument)")
-	outputfmt.AddOutputFlag(cmd, &outputFormat)
+	pipelines.AddOutputFlag(cmd, &outputFormat)
 
 	return cmd
 }

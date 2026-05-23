@@ -12,14 +12,14 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-// render.go centralises the human/JSON output rendering used by the
-// `dr pipelines environment` verbs so each verb file stays focused on
+// environment_output.go centralises the human/JSON output rendering used by
+// the `dr pipelines environment` verbs so each verb file stays focused on
 // flag wiring.
-
-package envutil
+package pipelines
 
 import (
 	"encoding/json"
+	"errors"
 	"fmt"
 	"os"
 	"slices"
@@ -30,14 +30,7 @@ import (
 
 	"github.com/charmbracelet/lipgloss"
 	"github.com/charmbracelet/lipgloss/table"
-	"github.com/datarobot/cli/cmd/pipelines/outputfmt"
-	"github.com/datarobot/cli/internal/pipelines"
 	"github.com/datarobot/cli/tui"
-)
-
-const (
-	timestampFormat       = "2006-01-02 15:04 UTC"
-	emptyValuePlaceholder = "—"
 )
 
 // environmentVersionJSON is the DTO for a single EnvironmentVersion in JSON output.
@@ -72,7 +65,7 @@ type environmentSummaryJSON struct {
 	UpdatedAt     string  `json:"updated_at"`
 }
 
-func toEnvironmentJSON(env pipelines.Environment) environmentJSON {
+func toEnvironmentJSON(env Environment) environmentJSON {
 	versions := make([]environmentVersionJSON, len(env.Versions))
 
 	for i, v := range env.Versions {
@@ -97,7 +90,7 @@ func toEnvironmentJSON(env pipelines.Environment) environmentJSON {
 	}
 }
 
-func toEnvironmentSummaryJSON(env pipelines.EnvironmentSummary) environmentSummaryJSON {
+func toEnvironmentSummaryJSON(env EnvironmentSummary) environmentSummaryJSON {
 	return environmentSummaryJSON{
 		EnvironmentID: env.EnvironmentID,
 		Name:          env.Name,
@@ -110,8 +103,8 @@ func toEnvironmentSummaryJSON(env pipelines.EnvironmentSummary) environmentSumma
 }
 
 // RenderEnvironment routes a single environment to JSON or human output.
-func RenderEnvironment(format outputfmt.OutputFormat, env pipelines.Environment) error {
-	if format == outputfmt.OutputFormatJSON {
+func RenderEnvironment(format OutputFormat, env Environment) error {
+	if format == OutputFormatJSON {
 		return PrintEnvironmentJSON(env)
 	}
 
@@ -121,8 +114,8 @@ func RenderEnvironment(format outputfmt.OutputFormat, env pipelines.Environment)
 }
 
 // RenderEnvironments routes a list of environments to JSON or human output.
-func RenderEnvironments(format outputfmt.OutputFormat, items []pipelines.EnvironmentSummary) error {
-	if format == outputfmt.OutputFormatJSON {
+func RenderEnvironments(format OutputFormat, items []EnvironmentSummary) error {
+	if format == OutputFormatJSON {
 		return PrintEnvironmentListJSON(items)
 	}
 
@@ -132,7 +125,7 @@ func RenderEnvironments(format outputfmt.OutputFormat, items []pipelines.Environ
 }
 
 // PrintEnvironmentJSON marshals an environment record as indented JSON through the DTO.
-func PrintEnvironmentJSON(env pipelines.Environment) error {
+func PrintEnvironmentJSON(env Environment) error {
 	data, err := json.MarshalIndent(toEnvironmentJSON(env), "", "  ")
 	if err != nil {
 		return err
@@ -145,7 +138,7 @@ func PrintEnvironmentJSON(env pipelines.Environment) error {
 
 // PrintEnvironmentHuman renders the key facts about a single environment
 // record, including its full version history.
-func PrintEnvironmentHuman(env pipelines.Environment) {
+func PrintEnvironmentHuman(env Environment) {
 	desc := emptyValuePlaceholder
 	if env.Description != nil && *env.Description != "" {
 		desc = *env.Description
@@ -206,7 +199,7 @@ func PrintEnvironmentHuman(env pipelines.Environment) {
 }
 
 // PrintEnvironmentListJSON marshals a list of environments as indented JSON through the DTO.
-func PrintEnvironmentListJSON(items []pipelines.EnvironmentSummary) error {
+func PrintEnvironmentListJSON(items []EnvironmentSummary) error {
 	view := make([]environmentSummaryJSON, len(items))
 
 	for i, env := range items {
@@ -224,7 +217,7 @@ func PrintEnvironmentListJSON(items []pipelines.EnvironmentSummary) error {
 }
 
 // PrintEnvironmentListHuman renders a lipgloss table summary of environments.
-func PrintEnvironmentListHuman(items []pipelines.EnvironmentSummary) {
+func PrintEnvironmentListHuman(items []EnvironmentSummary) {
 	if len(items) == 0 {
 		fmt.Println(tui.DimStyle.Render("No environments found"))
 
@@ -280,4 +273,26 @@ func joinPackages(packages []string) string {
 	}
 
 	return joined[:maxLen-3] + "..."
+}
+
+// NormalizePackages takes the raw slice from a cobra StringSliceVar and
+// returns a cleaned list. It returns an error when the resulting list is
+// empty so callers can surface a friendly validation message.
+func NormalizePackages(raw []string) ([]string, error) {
+	out := make([]string, 0, len(raw))
+
+	for _, entry := range raw {
+		for _, item := range strings.Split(entry, ",") {
+			trimmed := strings.TrimSpace(item)
+			if trimmed != "" {
+				out = append(out, trimmed)
+			}
+		}
+	}
+
+	if len(out) == 0 {
+		return nil, errors.New("at least one package is required (use --package)")
+	}
+
+	return out, nil
 }

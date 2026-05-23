@@ -12,11 +12,9 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-// Package runutil holds the rendering helpers shared by the
-// `dr pipelines run` verbs. Living in a sibling package keeps the
-// parent `run` package free of cycles.
-
-package runutil
+// run_output.go holds the rendering helpers shared by the
+// `dr pipelines run` verbs.
+package pipelines
 
 import (
 	"encoding/json"
@@ -29,20 +27,13 @@ import (
 
 	"github.com/charmbracelet/lipgloss"
 	"github.com/charmbracelet/lipgloss/table"
-	"github.com/datarobot/cli/cmd/pipelines/outputfmt"
-	"github.com/datarobot/cli/internal/pipelines"
 	"github.com/datarobot/cli/tui"
 )
 
-const (
-	timestampFormat       = "2006-01-02 15:04 UTC"
-	emptyValuePlaceholder = "—"
-)
-
 // runJSON is the CLI-facing shape used for `--output-format json`. It mirrors
-// pipelines.Run but renames the wire-level fields to the CLI's `run`
+// Run but renames the wire-level fields to the CLI's `run`
 // vocabulary (`run_id`, `covalent_run_id`). Decoding still happens
-// through pipelines.Run, which keeps the API wire tags intact.
+// through Run, which keeps the API wire tags intact.
 type runJSON struct {
 	RunID         string `json:"run_id"`
 	PipelineID    string `json:"pipeline_id"`
@@ -56,7 +47,7 @@ type runJSON struct {
 	UpdatedAt     string `json:"updated_at"`
 }
 
-func toRunJSON(r pipelines.Run) runJSON {
+func toRunJSON(r Run) runJSON {
 	return runJSON{
 		RunID:         r.RunID,
 		PipelineID:    r.PipelineID,
@@ -71,14 +62,14 @@ func toRunJSON(r pipelines.Run) runJSON {
 	}
 }
 
-// runStatusJSON mirrors pipelines.RunStatus with CLI-vocabulary keys.
+// runStatusJSON mirrors RunStatus with CLI-vocabulary keys.
 type runStatusJSON struct {
 	RunID         string `json:"run_id"`
 	Status        string `json:"status"`
 	CovalentRunID string `json:"covalent_run_id,omitempty"`
 }
 
-func toRunStatusJSON(s pipelines.RunStatus) runStatusJSON {
+func toRunStatusJSON(s RunStatus) runStatusJSON {
 	return runStatusJSON{
 		RunID:         s.RunID,
 		Status:        s.Status,
@@ -87,8 +78,8 @@ func toRunStatusJSON(s pipelines.RunStatus) runStatusJSON {
 }
 
 // RenderRun routes a single run to JSON or human output.
-func RenderRun(format outputfmt.OutputFormat, r pipelines.Run) error {
-	if format == outputfmt.OutputFormatJSON {
+func RenderRun(format OutputFormat, r Run) error {
+	if format == OutputFormatJSON {
 		return PrintRunJSON(r)
 	}
 
@@ -98,8 +89,8 @@ func RenderRun(format outputfmt.OutputFormat, r pipelines.Run) error {
 }
 
 // RenderRuns routes a list of runs to JSON or human output.
-func RenderRuns(format outputfmt.OutputFormat, items []pipelines.Run) error {
-	if format == outputfmt.OutputFormatJSON {
+func RenderRuns(format OutputFormat, items []Run) error {
+	if format == OutputFormatJSON {
 		return PrintRunListJSON(items)
 	}
 
@@ -109,8 +100,8 @@ func RenderRuns(format outputfmt.OutputFormat, items []pipelines.Run) error {
 }
 
 // RenderRunStatus routes a run status to JSON or human output.
-func RenderRunStatus(format outputfmt.OutputFormat, s pipelines.RunStatus) error {
-	if format == outputfmt.OutputFormatJSON {
+func RenderRunStatus(format OutputFormat, s RunStatus) error {
+	if format == OutputFormatJSON {
 		return PrintStatusJSON(s)
 	}
 
@@ -120,7 +111,7 @@ func RenderRunStatus(format outputfmt.OutputFormat, s pipelines.RunStatus) error
 }
 
 // PrintRunJSON marshals a run as indented JSON using CLI-vocabulary keys.
-func PrintRunJSON(r pipelines.Run) error {
+func PrintRunJSON(r Run) error {
 	data, err := json.MarshalIndent(toRunJSON(r), "", "  ")
 	if err != nil {
 		return err
@@ -132,7 +123,7 @@ func PrintRunJSON(r pipelines.Run) error {
 }
 
 // PrintRunHuman renders a single run in a human-friendly form.
-func PrintRunHuman(r pipelines.Run) {
+func PrintRunHuman(r Run) {
 	scope := "draft"
 	versionDisplay := emptyValuePlaceholder
 
@@ -169,7 +160,7 @@ func PrintRunHuman(r pipelines.Run) {
 
 // PrintRunListJSON marshals a list of runs as indented JSON using
 // CLI-vocabulary keys.
-func PrintRunListJSON(items []pipelines.Run) error {
+func PrintRunListJSON(items []Run) error {
 	view := make([]runJSON, len(items))
 
 	for i, r := range items {
@@ -187,7 +178,7 @@ func PrintRunListJSON(items []pipelines.Run) error {
 }
 
 // PrintRunListHuman renders a lipgloss table summary of runs.
-func PrintRunListHuman(items []pipelines.Run) {
+func PrintRunListHuman(items []Run) {
 	if len(items) == 0 {
 		fmt.Println(tui.DimStyle.Render("No runs found"))
 
@@ -235,7 +226,7 @@ func PrintRunListHuman(items []pipelines.Run) {
 
 // PrintStatusJSON marshals a lightweight status response as indented JSON
 // using CLI-vocabulary keys.
-func PrintStatusJSON(s pipelines.RunStatus) error {
+func PrintStatusJSON(s RunStatus) error {
 	data, err := json.MarshalIndent(toRunStatusJSON(s), "", "  ")
 	if err != nil {
 		return err
@@ -247,7 +238,7 @@ func PrintStatusJSON(s pipelines.RunStatus) error {
 }
 
 // PrintStatusHuman renders a lightweight status response.
-func PrintStatusHuman(s pipelines.RunStatus) {
+func PrintStatusHuman(s RunStatus) {
 	covalent := s.CovalentDispatchID
 	if covalent == "" {
 		covalent = emptyValuePlaceholder

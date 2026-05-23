@@ -12,10 +12,9 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-// render.go centralises the human/JSON output rendering used by the input
-// verbs so each verb file stays focused on flag wiring.
-
-package inpututil
+// input_output.go centralises the human/JSON output rendering used by the
+// input verbs so each verb file stays focused on flag wiring.
+package pipelines
 
 import (
 	"encoding/json"
@@ -28,14 +27,7 @@ import (
 
 	"github.com/charmbracelet/lipgloss"
 	"github.com/charmbracelet/lipgloss/table"
-	"github.com/datarobot/cli/cmd/pipelines/outputfmt"
-	"github.com/datarobot/cli/internal/pipelines"
 	"github.com/datarobot/cli/tui"
-)
-
-const (
-	timestampFormat       = "2006-01-02 15:04 UTC"
-	emptyValuePlaceholder = "—"
 )
 
 // inputJSON is the CLI-facing DTO used for `--output-format json`.
@@ -50,7 +42,7 @@ type inputJSON struct {
 	UpdatedAt  string          `json:"updated_at"`
 }
 
-func toInputJSON(input pipelines.Input) inputJSON {
+func toInputJSON(input Input) inputJSON {
 	scope := "draft"
 	version := emptyValuePlaceholder
 
@@ -74,8 +66,8 @@ func toInputJSON(input pipelines.Input) inputJSON {
 }
 
 // RenderInput routes a single input to JSON or human output.
-func RenderInput(format outputfmt.OutputFormat, input pipelines.Input) error {
-	if format == outputfmt.OutputFormatJSON {
+func RenderInput(format OutputFormat, input Input) error {
+	if format == OutputFormatJSON {
 		return PrintInputJSON(input)
 	}
 
@@ -85,8 +77,8 @@ func RenderInput(format outputfmt.OutputFormat, input pipelines.Input) error {
 }
 
 // RenderInputs routes a list of inputs to JSON or human output.
-func RenderInputs(format outputfmt.OutputFormat, inputs []pipelines.Input) error {
-	if format == outputfmt.OutputFormatJSON {
+func RenderInputs(format OutputFormat, inputs []Input) error {
+	if format == OutputFormatJSON {
 		return PrintInputListJSON(inputs)
 	}
 
@@ -96,7 +88,7 @@ func RenderInputs(format outputfmt.OutputFormat, inputs []pipelines.Input) error
 }
 
 // PrintInputJSON marshals an input record as indented JSON through the DTO.
-func PrintInputJSON(input pipelines.Input) error {
+func PrintInputJSON(input Input) error {
 	data, err := json.MarshalIndent(toInputJSON(input), "", "  ")
 	if err != nil {
 		return err
@@ -108,7 +100,7 @@ func PrintInputJSON(input pipelines.Input) error {
 }
 
 // PrintInputHuman renders the key facts about a single input record.
-func PrintInputHuman(input pipelines.Input) {
+func PrintInputHuman(input Input) {
 	scope := "draft"
 	versionDisplay := emptyValuePlaceholder
 
@@ -140,7 +132,7 @@ func PrintInputHuman(input pipelines.Input) {
 }
 
 // PrintInputListJSON marshals a list of inputs as indented JSON through the DTO.
-func PrintInputListJSON(inputs []pipelines.Input) error {
+func PrintInputListJSON(inputs []Input) error {
 	view := make([]inputJSON, len(inputs))
 
 	for i, in := range inputs {
@@ -158,7 +150,7 @@ func PrintInputListJSON(inputs []pipelines.Input) error {
 }
 
 // PrintInputListHuman renders a lipgloss table summary of inputs.
-func PrintInputListHuman(inputs []pipelines.Input) {
+func PrintInputListHuman(inputs []Input) {
 	if len(inputs) == 0 {
 		fmt.Println(tui.DimStyle.Render("No inputs found"))
 

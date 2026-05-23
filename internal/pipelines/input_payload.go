@@ -12,11 +12,10 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-// payload.go contains the shared helper for resolving an input payload
+// input_payload.go contains the shared helper for resolving an input payload
 // from either a positional argument or the --from-file flag, then parsing
 // it as JSON.
-
-package inpututil
+package pipelines
 
 import (
 	"encoding/json"
@@ -31,7 +30,7 @@ import (
 // must be provided. The contents of the file must be a JSON object so it
 // fits the `{payload: object}` body the API expects.
 func ResolvePayload(args []string, fromFile string) (map[string]any, error) {
-	path, err := resolveFilePath(args, fromFile)
+	path, err := resolvePayloadFilePath(args, fromFile)
 	if err != nil {
 		return nil, err
 	}
@@ -51,9 +50,9 @@ func ResolvePayload(args []string, fromFile string) (map[string]any, error) {
 	return payload, nil
 }
 
-// resolveFilePath returns the file path supplied either positionally or
+// resolvePayloadFilePath returns the file path supplied either positionally or
 // via --from-file. Exactly one of the two must be provided.
-func resolveFilePath(args []string, fromFile string) (string, error) {
+func resolvePayloadFilePath(args []string, fromFile string) (string, error) {
 	positional := ""
 	if len(args) > 0 {
 		positional = args[0]

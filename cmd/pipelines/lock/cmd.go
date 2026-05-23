@@ -15,15 +15,13 @@
 package lock
 
 import (
-	"github.com/datarobot/cli/cmd/pipelines/outputfmt"
-	"github.com/datarobot/cli/cmd/pipelines/pipelineutil"
 	"github.com/datarobot/cli/internal/auth"
 	"github.com/datarobot/cli/internal/pipelines"
 	"github.com/spf13/cobra"
 )
 
 func Cmd() *cobra.Command {
-	var outputFormat outputfmt.OutputFormat
+	var outputFormat pipelines.OutputFormat
 
 	cmd := &cobra.Command{
 		Use:   "lock <pipeline-id>",
@@ -43,11 +41,11 @@ Example:
 				return err
 			}
 
-			return pipelineutil.RenderCreateResponse(outputFormat, *result)
+			return pipelines.RenderCreateResponse(outputFormat, *result)
 		},
 	}
 
-	outputfmt.AddOutputFlag(cmd, &outputFormat)
+	pipelines.AddOutputFlag(cmd, &outputFormat)
 
 	return cmd
 }

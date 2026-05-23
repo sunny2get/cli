@@ -19,8 +19,6 @@ import (
 	"fmt"
 	"net/http"
 
-	"github.com/datarobot/cli/cmd/pipelines/outputfmt"
-	"github.com/datarobot/cli/cmd/pipelines/pipelineutil"
 	"github.com/datarobot/cli/internal/auth"
 	"github.com/datarobot/cli/internal/drapi"
 	"github.com/datarobot/cli/internal/pipelines"
@@ -29,7 +27,7 @@ import (
 )
 
 func Cmd() *cobra.Command {
-	var outputFormat outputfmt.OutputFormat
+	var outputFormat pipelines.OutputFormat
 
 	cmd := &cobra.Command{
 		Use:   "get <pipeline-id>",
@@ -50,11 +48,11 @@ Example:
 				return handleGetError(err, args[0])
 			}
 
-			return pipelineutil.RenderPipeline(outputFormat, *pipeline)
+			return pipelines.RenderPipeline(outputFormat, *pipeline)
 		},
 	}
 
-	outputfmt.AddOutputFlag(cmd, &outputFormat)
+	pipelines.AddOutputFlag(cmd, &outputFormat)
 
 	return cmd
 }

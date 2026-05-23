@@ -20,8 +20,6 @@ import (
 	"net/http"
 	"strconv"
 
-	"github.com/datarobot/cli/cmd/pipelines/outputfmt"
-	"github.com/datarobot/cli/cmd/pipelines/version/versionutil"
 	"github.com/datarobot/cli/internal/auth"
 	"github.com/datarobot/cli/internal/drapi"
 	"github.com/datarobot/cli/internal/pipelines"
@@ -32,7 +30,7 @@ import (
 func Cmd() *cobra.Command {
 	var (
 		pipelineID   string
-		outputFormat outputfmt.OutputFormat
+		outputFormat pipelines.OutputFormat
 	)
 
 	cmd := &cobra.Command{
@@ -61,12 +59,12 @@ Example:
 				return handleGetError(err, args[0])
 			}
 
-			return versionutil.RenderVersion(outputFormat, *result)
+			return pipelines.RenderVersion(outputFormat, *result)
 		},
 	}
 
 	cmd.Flags().StringVar(&pipelineID, "pipeline", "", "Pipeline ID")
-	outputfmt.AddOutputFlag(cmd, &outputFormat)
+	pipelines.AddOutputFlag(cmd, &outputFormat)
 
 	return cmd
 }

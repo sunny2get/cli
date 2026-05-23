@@ -17,8 +17,6 @@ package create
 import (
 	"errors"
 
-	"github.com/datarobot/cli/cmd/pipelines/outputfmt"
-	"github.com/datarobot/cli/cmd/pipelines/run/runutil"
 	"github.com/datarobot/cli/cmd/pipelines/scopeflag"
 	"github.com/datarobot/cli/internal/auth"
 	"github.com/datarobot/cli/internal/pipelines"
@@ -29,7 +27,7 @@ func Cmd() *cobra.Command {
 	var (
 		flags        scopeflag.Flags
 		inputID      string
-		outputFormat outputfmt.OutputFormat
+		outputFormat pipelines.OutputFormat
 	)
 
 	cmd := &cobra.Command{
@@ -65,13 +63,13 @@ Example:
 				return err
 			}
 
-			return runutil.RenderRun(outputFormat, *result)
+			return pipelines.RenderRun(outputFormat, *result)
 		},
 	}
 
 	flags.Bind(cmd)
 	cmd.Flags().StringVar(&inputID, "input", "", "Input ID to trigger the run with")
-	outputfmt.AddOutputFlag(cmd, &outputFormat)
+	pipelines.AddOutputFlag(cmd, &outputFormat)
 
 	return cmd
 }

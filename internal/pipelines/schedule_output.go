@@ -12,11 +12,9 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-// Package scheduleutil holds the rendering helpers shared by the
-// `dr pipelines schedule` verbs. Sibling-package layout avoids cycles
-// with the parent schedule command.
-
-package scheduleutil
+// schedule_output.go holds the rendering helpers shared by the
+// `dr pipelines schedule` verbs.
+package pipelines
 
 import (
 	"encoding/json"
@@ -28,14 +26,7 @@ import (
 
 	"github.com/charmbracelet/lipgloss"
 	"github.com/charmbracelet/lipgloss/table"
-	"github.com/datarobot/cli/cmd/pipelines/outputfmt"
-	"github.com/datarobot/cli/internal/pipelines"
 	"github.com/datarobot/cli/tui"
-)
-
-const (
-	timestampFormat       = "2006-01-02 15:04 UTC"
-	emptyValuePlaceholder = "—"
 )
 
 // scheduleJSON is the CLI-facing DTO used for `--output-format json`.
@@ -50,7 +41,7 @@ type scheduleJSON struct {
 	UpdatedAt      string `json:"updated_at"`
 }
 
-func toScheduleJSON(s pipelines.Schedule) scheduleJSON {
+func toScheduleJSON(s Schedule) scheduleJSON {
 	return scheduleJSON{
 		ScheduleID:     s.ScheduleID,
 		PipelineID:     s.PipelineID,
@@ -64,8 +55,8 @@ func toScheduleJSON(s pipelines.Schedule) scheduleJSON {
 }
 
 // RenderSchedule routes a single schedule to JSON or human output.
-func RenderSchedule(format outputfmt.OutputFormat, s pipelines.Schedule) error {
-	if format == outputfmt.OutputFormatJSON {
+func RenderSchedule(format OutputFormat, s Schedule) error {
+	if format == OutputFormatJSON {
 		return PrintScheduleJSON(s)
 	}
 
@@ -75,8 +66,8 @@ func RenderSchedule(format outputfmt.OutputFormat, s pipelines.Schedule) error {
 }
 
 // RenderSchedules routes a list of schedules to JSON or human output.
-func RenderSchedules(format outputfmt.OutputFormat, items []pipelines.Schedule) error {
-	if format == outputfmt.OutputFormatJSON {
+func RenderSchedules(format OutputFormat, items []Schedule) error {
+	if format == OutputFormatJSON {
 		return PrintScheduleListJSON(items)
 	}
 
@@ -86,7 +77,7 @@ func RenderSchedules(format outputfmt.OutputFormat, items []pipelines.Schedule) 
 }
 
 // PrintScheduleJSON marshals a schedule as indented JSON through the DTO.
-func PrintScheduleJSON(s pipelines.Schedule) error {
+func PrintScheduleJSON(s Schedule) error {
 	data, err := json.MarshalIndent(toScheduleJSON(s), "", "  ")
 	if err != nil {
 		return err
@@ -98,7 +89,7 @@ func PrintScheduleJSON(s pipelines.Schedule) error {
 }
 
 // PrintScheduleHuman renders a single schedule in human-friendly form.
-func PrintScheduleHuman(s pipelines.Schedule) {
+func PrintScheduleHuman(s Schedule) {
 	w := tabwriter.NewWriter(os.Stdout, 0, 0, 2, ' ', 0)
 
 	fmt.Fprintf(w, "Schedule ID:\t%s\n", s.ScheduleID)
@@ -114,7 +105,7 @@ func PrintScheduleHuman(s pipelines.Schedule) {
 }
 
 // PrintScheduleListJSON marshals a list of schedules as indented JSON through the DTO.
-func PrintScheduleListJSON(items []pipelines.Schedule) error {
+func PrintScheduleListJSON(items []Schedule) error {
 	view := make([]scheduleJSON, len(items))
 
 	for i, s := range items {
@@ -132,7 +123,7 @@ func PrintScheduleListJSON(items []pipelines.Schedule) error {
 }
 
 // PrintScheduleListHuman renders a lipgloss table summary of schedules.
-func PrintScheduleListHuman(items []pipelines.Schedule) {
+func PrintScheduleListHuman(items []Schedule) {
 	if len(items) == 0 {
 		fmt.Println(tui.DimStyle.Render("No schedules found"))
 

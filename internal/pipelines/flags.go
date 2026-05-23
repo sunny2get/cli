@@ -12,9 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-// Package outputfmt provides the --output-format flag shared by all
-// `dr pipelines` subcommands.
-package outputfmt
+package pipelines
 
 import (
 	"fmt"

@@ -17,8 +17,6 @@ package update
 import (
 	"errors"
 
-	"github.com/datarobot/cli/cmd/pipelines/outputfmt"
-	"github.com/datarobot/cli/cmd/pipelines/schedule/scheduleutil"
 	"github.com/datarobot/cli/internal/auth"
 	"github.com/datarobot/cli/internal/pipelines"
 	"github.com/spf13/cobra"
@@ -30,7 +28,7 @@ func Cmd() *cobra.Command {
 		version      int
 		cron         string
 		timezone     string
-		outputFormat outputfmt.OutputFormat
+		outputFormat pipelines.OutputFormat
 	)
 
 	cmd := &cobra.Command{
@@ -58,7 +56,7 @@ Example:
 				return err
 			}
 
-			return scheduleutil.RenderSchedule(outputFormat, *result)
+			return pipelines.RenderSchedule(outputFormat, *result)
 		},
 	}
 
@@ -66,7 +64,7 @@ Example:
 	cmd.Flags().IntVar(&version, "version", 0, "Locked pipeline version")
 	cmd.Flags().StringVar(&cron, "cron", "", "New cron expression")
 	cmd.Flags().StringVar(&timezone, "timezone", "", "New IANA timezone name")
-	outputfmt.AddOutputFlag(cmd, &outputFormat)
+	pipelines.AddOutputFlag(cmd, &outputFormat)
 
 	return cmd
 }

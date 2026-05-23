@@ -15,8 +15,6 @@
 package update
 
 import (
-	"github.com/datarobot/cli/cmd/pipelines/environment/envutil"
-	"github.com/datarobot/cli/cmd/pipelines/outputfmt"
 	"github.com/datarobot/cli/internal/auth"
 	"github.com/datarobot/cli/internal/pipelines"
 	"github.com/spf13/cobra"
@@ -25,7 +23,7 @@ import (
 func Cmd() *cobra.Command {
 	var (
 		rawPackages  []string
-		outputFormat outputfmt.OutputFormat
+		outputFormat pipelines.OutputFormat
 	)
 
 	cmd := &cobra.Command{
@@ -43,7 +41,7 @@ Example:
 		PreRunE:      auth.EnsureAuthenticatedE,
 		SilenceUsage: true,
 		RunE: func(_ *cobra.Command, args []string) error {
-			packages, err := envutil.NormalizePackages(rawPackages)
+			packages, err := pipelines.NormalizePackages(rawPackages)
 			if err != nil {
 				return err
 			}
@@ -53,12 +51,12 @@ Example:
 				return err
 			}
 
-			return envutil.RenderEnvironment(outputFormat, *result)
+			return pipelines.RenderEnvironment(outputFormat, *result)
 		},
 	}
 
 	cmd.Flags().StringSliceVar(&rawPackages, "package", nil, "Pip package spec (repeatable, also accepts comma-separated values)")
-	outputfmt.AddOutputFlag(cmd, &outputFormat)
+	pipelines.AddOutputFlag(cmd, &outputFormat)
 
 	return cmd
 }
