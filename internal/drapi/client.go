@@ -12,10 +12,9 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-// This file owns the cross-verb HTTP primitives shared by every DataRobot
-// API call: a client constructor, the standard header set, and the cached
-// token resolver. Verb-specific helpers (Get/GetJSON in get.go, future
-// post.go/patch.go, etc.) reuse these to stay consistent.
+// This file owns the HTTP client constructor, the cached token resolver, and
+// the DefaultClientTimeout constant shared by every verb helper (get.go,
+// post.go, patch.go, delete.go). AuthorizeRequest lives in auth.go.
 //
 // HTTPError, the package-level `token` cache, and resolveToken() live in
 // get.go for historical reasons and are reused from this file.
@@ -25,8 +24,6 @@ package drapi
 import (
 	"net/http"
 	"time"
-
-	"github.com/datarobot/cli/internal/config"
 )
 
 // DefaultClientTimeout is the read/write timeout used by NewHTTPClient when
@@ -56,24 +53,4 @@ func getToken() (string, error) {
 // future shared-transport tweaks live in one place.
 func NewHTTPClient(timeout time.Duration) *http.Client {
 	return &http.Client{Timeout: timeout}
-}
-
-// AuthorizeRequest sets the standard DataRobot API headers on req:
-// Authorization (Bearer token), User-Agent, and the optional
-// X-DataRobot-Api-Consumer-Trace. The request body is never read, so this
-// is safe to call on multipart upload requests.
-func AuthorizeRequest(req *http.Request) error {
-	bearer, err := getToken()
-	if err != nil {
-		return err
-	}
-
-	req.Header.Set("Authorization", "Bearer "+bearer)
-	req.Header.Set("User-Agent", config.GetUserAgentHeader())
-
-	if config.IsAPIConsumerTrackingEnabled() {
-		req.Header.Set("X-DataRobot-Api-Consumer-Trace", config.GetAPIConsumerTrace())
-	}
-
-	return nil
 }

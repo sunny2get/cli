@@ -103,12 +103,7 @@ func GetJSON(url, info string, v any, timeoutSecs ...int) error {
 		return err
 	}
 
-	err = json.NewDecoder(resp.Body).Decode(&v)
-	if err != nil {
-		return err
-	}
+	defer resp.Body.Close()
 
-	resp.Body.Close()
-
-	return nil
+	return json.NewDecoder(resp.Body).Decode(&v)
 }

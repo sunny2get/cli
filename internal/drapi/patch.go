@@ -38,7 +38,7 @@ func Patch(url, info string, body any) (*http.Response, error) {
 		return nil, err
 	}
 
-	req.Header.Add("Content-Type", "application/json")
+	req.Header.Set("Content-Type", "application/json")
 
 	if info != "" {
 		log.Infof("Updating %s at: %s", info, url)

@@ -15,7 +15,9 @@
 package drapi
 
 import (
+	"io"
 	"net/http"
+	"strings"
 	"testing"
 	"time"
 
@@ -107,37 +109,14 @@ func TestAuthorizeRequest_DoesNotConsumeBody(t *testing.T) {
 	withSkipAuth(t, "shhh")
 
 	req, err := http.NewRequest(http.MethodPost, "http://example/api/v2/foo",
-		stringReader("payload"))
+		io.NopCloser(strings.NewReader("payload")))
 	require.NoError(t, err)
 
 	require.NoError(t, AuthorizeRequest(req))
 
 	// Body must still be readable after AuthorizeRequest — this is the
 	// invariant that makes it safe for multipart uploads.
-	buf := make([]byte, 7)
-
-	n, _ := req.Body.Read(buf)
-	assert.Equal(t, 7, n)
-	assert.Equal(t, "payload", string(buf))
+	body, err := io.ReadAll(req.Body)
+	require.NoError(t, err)
+	assert.Equal(t, "payload", string(body))
 }
-
-// stringReader is a tiny io.ReadCloser-friendly helper so we don't pull in
-// strings/bytes for one assertion.
-func stringReader(s string) *fakeBody {
-	return &fakeBody{data: []byte(s)}
-}
-
-type fakeBody struct {
-	data []byte
-	pos  int
-}
-
-func (f *fakeBody) Read(p []byte) (int, error) {
-	n := copy(p, f.data[f.pos:])
-
-	f.pos += n
-
-	return n, nil
-}
-
-func (f *fakeBody) Close() error { return nil }
