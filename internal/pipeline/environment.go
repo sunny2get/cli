@@ -27,7 +27,7 @@
 //   DELETE /api/v2/pipelines/environments/{id}              (soft-deletes latest version, cascades parent)
 //   DELETE /api/v2/pipelines/environments/{id}/versions/{n} (soft-deletes a specific version)
 
-package pipelines
+package pipeline
 
 import (
 	"net/http"

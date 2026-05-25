@@ -23,7 +23,7 @@ import (
 	"time"
 
 	"github.com/datarobot/cli/internal/drapi"
-	"github.com/datarobot/cli/internal/pipelines"
+	"github.com/datarobot/cli/internal/pipeline"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )
@@ -48,8 +48,8 @@ func captureStdout(t *testing.T, fn func()) string {
 	return buf.String()
 }
 
-func samplePipeline() pipelines.Pipeline {
-	return pipelines.Pipeline{
+func samplePipeline() pipeline.Pipeline {
+	return pipeline.Pipeline{
 		PipelineID:  "683c2a1b4f8e1a2b3c4d5e6f",
 		Name:        "confluence_to_vdb",
 		Description: "test",
@@ -57,7 +57,7 @@ func samplePipeline() pipelines.Pipeline {
 		IsActive:    true,
 		CreatedAt:   time.Date(2026, 4, 28, 11, 42, 28, 0, time.UTC),
 		UpdatedAt:   time.Date(2026, 4, 28, 12, 25, 11, 0, time.UTC),
-		Versions: []pipelines.PipelineVersion{
+		Versions: []pipeline.PipelineVersion{
 			{
 				Version:       1,
 				Status:        "READY",
@@ -77,10 +77,10 @@ func samplePipeline() pipelines.Pipeline {
 }
 
 func TestPrintGetJSON(t *testing.T) {
-	pipeline := samplePipeline()
+	p := samplePipeline()
 
 	output := captureStdout(t, func() {
-		err := pipelines.RenderPipeline(pipelines.OutputFormatJSON, pipeline)
+		err := pipeline.RenderPipeline(pipeline.OutputFormatJSON, p)
 		require.NoError(t, err)
 	})
 
@@ -90,13 +90,13 @@ func TestPrintGetJSON(t *testing.T) {
 }
 
 func TestPrintGetHuman_RendersHeaderAndVersions(t *testing.T) {
-	pipeline := samplePipeline()
+	p := samplePipeline()
 
 	output := captureStdout(t, func() {
-		require.NoError(t, pipelines.RenderPipeline(pipelines.OutputFormatText, pipeline))
+		require.NoError(t, pipeline.RenderPipeline(pipeline.OutputFormatText, p))
 	})
 
-	assert.Contains(t, output, pipeline.PipelineID)
+	assert.Contains(t, output, p.PipelineID)
 	assert.Contains(t, output, "confluence_to_vdb")
 	assert.Contains(t, output, "test")
 	assert.Contains(t, output, "draft")
@@ -114,22 +114,22 @@ func TestPrintGetHuman_RendersHeaderAndVersions(t *testing.T) {
 }
 
 func TestPrintGetHuman_BlankDescriptionFallsBack(t *testing.T) {
-	pipeline := samplePipeline()
-	pipeline.Description = ""
+	p := samplePipeline()
+	p.Description = ""
 
 	output := captureStdout(t, func() {
-		require.NoError(t, pipelines.RenderPipeline(pipelines.OutputFormatText, pipeline))
+		require.NoError(t, pipeline.RenderPipeline(pipeline.OutputFormatText, p))
 	})
 
 	assert.Contains(t, output, "—")
 }
 
 func TestPrintGetHuman_NoVersions(t *testing.T) {
-	pipeline := samplePipeline()
-	pipeline.Versions = nil
+	p := samplePipeline()
+	p.Versions = nil
 
 	output := captureStdout(t, func() {
-		require.NoError(t, pipelines.RenderPipeline(pipelines.OutputFormatText, pipeline))
+		require.NoError(t, pipeline.RenderPipeline(pipeline.OutputFormatText, p))
 	})
 
 	assert.NotContains(t, output, "Versions (")

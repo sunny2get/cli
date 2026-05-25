@@ -18,7 +18,7 @@ import (
 	"errors"
 
 	"github.com/datarobot/cli/internal/auth"
-	"github.com/datarobot/cli/internal/pipelines"
+	"github.com/datarobot/cli/internal/pipeline"
 	"github.com/spf13/cobra"
 )
 
@@ -27,7 +27,7 @@ func Cmd() *cobra.Command {
 		pipelineID   string
 		offset       int
 		limit        int
-		outputFormat pipelines.OutputFormat
+		outputFormat pipeline.OutputFormat
 	)
 
 	cmd := &cobra.Command{
@@ -46,19 +46,19 @@ Example:
 				return errors.New("--pipeline is required")
 			}
 
-			items, err := pipelines.ListVersions(pipelineID, offset, limit)
+			items, err := pipeline.ListVersions(pipelineID, offset, limit)
 			if err != nil {
 				return err
 			}
 
-			return pipelines.RenderVersions(outputFormat, items)
+			return pipeline.RenderVersions(outputFormat, items)
 		},
 	}
 
 	cmd.Flags().StringVar(&pipelineID, "pipeline", "", "Pipeline ID")
 	cmd.Flags().IntVar(&offset, "offset", 0, "Pagination offset")
 	cmd.Flags().IntVar(&limit, "limit", 0, "Maximum number of versions to return")
-	pipelines.AddOutputFlag(cmd, &outputFormat)
+	pipeline.AddOutputFlag(cmd, &outputFormat)
 
 	return cmd
 }

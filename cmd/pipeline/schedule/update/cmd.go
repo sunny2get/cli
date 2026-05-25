@@ -18,7 +18,7 @@ import (
 	"errors"
 
 	"github.com/datarobot/cli/internal/auth"
-	"github.com/datarobot/cli/internal/pipelines"
+	"github.com/datarobot/cli/internal/pipeline"
 	"github.com/spf13/cobra"
 )
 
@@ -28,7 +28,7 @@ func Cmd() *cobra.Command {
 		version      int
 		cron         string
 		timezone     string
-		outputFormat pipelines.OutputFormat
+		outputFormat pipeline.OutputFormat
 	)
 
 	cmd := &cobra.Command{
@@ -51,12 +51,12 @@ Example:
 				return err
 			}
 
-			result, err := pipelines.UpdateSchedule(pipelineID, version, args[0], body)
+			result, err := pipeline.UpdateSchedule(pipelineID, version, args[0], body)
 			if err != nil {
 				return err
 			}
 
-			return pipelines.RenderSchedule(outputFormat, *result)
+			return pipeline.RenderSchedule(outputFormat, *result)
 		},
 	}
 
@@ -64,30 +64,30 @@ Example:
 	cmd.Flags().IntVar(&version, "version", 0, "Locked pipeline version")
 	cmd.Flags().StringVar(&cron, "cron", "", "New cron expression")
 	cmd.Flags().StringVar(&timezone, "timezone", "", "New IANA timezone name")
-	pipelines.AddOutputFlag(cmd, &outputFormat)
+	pipeline.AddOutputFlag(cmd, &outputFormat)
 
 	return cmd
 }
 
 // buildUpdateBody validates the flag set and assembles the PATCH body. It is
 // extracted from RunE to keep the cobra command's cyclomatic complexity low.
-func buildUpdateBody(cmd *cobra.Command, pipelineID string, version int, cron, timezone string) (pipelines.ScheduleUpdateRequest, error) {
+func buildUpdateBody(cmd *cobra.Command, pipelineID string, version int, cron, timezone string) (pipeline.ScheduleUpdateRequest, error) {
 	if pipelineID == "" {
-		return pipelines.ScheduleUpdateRequest{}, errors.New("--pipeline is required")
+		return pipeline.ScheduleUpdateRequest{}, errors.New("--pipeline is required")
 	}
 
 	if version <= 0 {
-		return pipelines.ScheduleUpdateRequest{}, errors.New("--version is required and must be > 0")
+		return pipeline.ScheduleUpdateRequest{}, errors.New("--version is required and must be > 0")
 	}
 
 	cronChanged := cmd.Flags().Changed("cron")
 	tzChanged := cmd.Flags().Changed("timezone")
 
 	if !cronChanged && !tzChanged {
-		return pipelines.ScheduleUpdateRequest{}, errors.New("at least one of --cron or --timezone must be specified")
+		return pipeline.ScheduleUpdateRequest{}, errors.New("at least one of --cron or --timezone must be specified")
 	}
 
-	body := pipelines.ScheduleUpdateRequest{}
+	body := pipeline.ScheduleUpdateRequest{}
 
 	if cronChanged {
 		v := cron

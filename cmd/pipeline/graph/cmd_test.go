@@ -24,7 +24,7 @@ import (
 	"testing"
 
 	"github.com/datarobot/cli/internal/drapi"
-	"github.com/datarobot/cli/internal/pipelines"
+	"github.com/datarobot/cli/internal/pipeline"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )
@@ -49,14 +49,14 @@ func captureStdout(t *testing.T, fn func()) string {
 	return buf.String()
 }
 
-func sampleGraph() pipelines.Graph {
-	return pipelines.Graph{
-		Pipeline: pipelines.GraphPipeline{Name: "wf", PythonVersion: "3.12"},
-		Nodes: []pipelines.GraphNode{
+func sampleGraph() pipeline.Graph {
+	return pipeline.Graph{
+		Pipeline: pipeline.GraphPipeline{Name: "wf", PythonVersion: "3.12"},
+		Nodes: []pipeline.GraphNode{
 			{ID: 0, Type: "function", Name: "wf"},
 			{ID: 1, Type: "function", Name: "step1"},
 		},
-		Edges: []pipelines.GraphEdge{
+		Edges: []pipeline.GraphEdge{
 			{Source: 0, Target: 1},
 		},
 	}
@@ -90,7 +90,7 @@ func TestPrintGraphHuman(t *testing.T) {
 
 func TestPrintGraphHuman_EmptyGraph(t *testing.T) {
 	output := captureStdout(t, func() {
-		printGraphHuman(pipelines.Graph{Pipeline: pipelines.GraphPipeline{Name: "empty"}})
+		printGraphHuman(pipeline.Graph{Pipeline: pipeline.GraphPipeline{Name: "empty"}})
 	})
 
 	assert.Contains(t, output, "No nodes")

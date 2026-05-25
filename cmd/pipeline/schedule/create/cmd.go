@@ -18,7 +18,7 @@ import (
 	"errors"
 
 	"github.com/datarobot/cli/internal/auth"
-	"github.com/datarobot/cli/internal/pipelines"
+	"github.com/datarobot/cli/internal/pipeline"
 	"github.com/spf13/cobra"
 )
 
@@ -29,7 +29,7 @@ func Cmd() *cobra.Command {
 		cron         string
 		inputID      string
 		timezone     string
-		outputFormat pipelines.OutputFormat
+		outputFormat pipeline.OutputFormat
 	)
 
 	cmd := &cobra.Command{
@@ -60,18 +60,18 @@ Example:
 				return errors.New("--input is required")
 			}
 
-			body := pipelines.ScheduleCreateRequest{
+			body := pipeline.ScheduleCreateRequest{
 				CronExpression:  cron,
 				PipelineInputID: inputID,
 				Timezone:        timezone,
 			}
 
-			result, err := pipelines.CreateSchedule(pipelineID, version, body)
+			result, err := pipeline.CreateSchedule(pipelineID, version, body)
 			if err != nil {
 				return err
 			}
 
-			return pipelines.RenderSchedule(outputFormat, *result)
+			return pipeline.RenderSchedule(outputFormat, *result)
 		},
 	}
 
@@ -80,7 +80,7 @@ Example:
 	cmd.Flags().StringVar(&cron, "cron", "", "Cron expression, e.g. \"0 * * * *\"")
 	cmd.Flags().StringVar(&inputID, "input", "", "Input ID to run on each tick")
 	cmd.Flags().StringVar(&timezone, "timezone", "", "IANA timezone name (default UTC)")
-	pipelines.AddOutputFlag(cmd, &outputFormat)
+	pipeline.AddOutputFlag(cmd, &outputFormat)
 
 	return cmd
 }

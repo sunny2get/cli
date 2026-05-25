@@ -16,14 +16,14 @@ package update
 
 import (
 	"github.com/datarobot/cli/internal/auth"
-	"github.com/datarobot/cli/internal/pipelines"
+	"github.com/datarobot/cli/internal/pipeline"
 	"github.com/spf13/cobra"
 )
 
 func Cmd() *cobra.Command {
 	var (
 		rawPackages  []string
-		outputFormat pipelines.OutputFormat
+		outputFormat pipeline.OutputFormat
 	)
 
 	cmd := &cobra.Command{
@@ -41,22 +41,22 @@ Example:
 		PreRunE:      auth.EnsureAuthenticatedE,
 		SilenceUsage: true,
 		RunE: func(_ *cobra.Command, args []string) error {
-			packages, err := pipelines.NormalizePackages(rawPackages)
+			packages, err := pipeline.NormalizePackages(rawPackages)
 			if err != nil {
 				return err
 			}
 
-			result, err := pipelines.UpdateEnvironment(args[0], packages)
+			result, err := pipeline.UpdateEnvironment(args[0], packages)
 			if err != nil {
 				return err
 			}
 
-			return pipelines.RenderEnvironment(outputFormat, *result)
+			return pipeline.RenderEnvironment(outputFormat, *result)
 		},
 	}
 
 	cmd.Flags().StringSliceVar(&rawPackages, "package", nil, "Pip package spec (repeatable, also accepts comma-separated values)")
-	pipelines.AddOutputFlag(cmd, &outputFormat)
+	pipeline.AddOutputFlag(cmd, &outputFormat)
 
 	return cmd
 }

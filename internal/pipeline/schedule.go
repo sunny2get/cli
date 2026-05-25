@@ -17,7 +17,7 @@
 // valid for locked pipeline versions, so the URL always carries a
 // /versions/{ver} segment and there is no Scope parameter on this side.
 
-package pipelines
+package pipeline
 
 import (
 	"net/http"

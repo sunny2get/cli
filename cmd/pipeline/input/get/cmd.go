@@ -22,7 +22,7 @@ import (
 	"github.com/datarobot/cli/cmd/pipeline/scopeflag"
 	"github.com/datarobot/cli/internal/auth"
 	"github.com/datarobot/cli/internal/drapi"
-	"github.com/datarobot/cli/internal/pipelines"
+	"github.com/datarobot/cli/internal/pipeline"
 	"github.com/datarobot/cli/tui"
 	"github.com/spf13/cobra"
 )
@@ -30,7 +30,7 @@ import (
 func Cmd() *cobra.Command {
 	var (
 		flags        scopeflag.Flags
-		outputFormat pipelines.OutputFormat
+		outputFormat pipeline.OutputFormat
 	)
 
 	cmd := &cobra.Command{
@@ -54,17 +54,17 @@ Example:
 				return err
 			}
 
-			result, err := pipelines.GetInput(flags.PipelineID, scope, version, args[0])
+			result, err := pipeline.GetInput(flags.PipelineID, scope, version, args[0])
 			if err != nil {
 				return handleGetError(err, args[0])
 			}
 
-			return pipelines.RenderInput(outputFormat, *result)
+			return pipeline.RenderInput(outputFormat, *result)
 		},
 	}
 
 	flags.Bind(cmd)
-	pipelines.AddOutputFlag(cmd, &outputFormat)
+	pipeline.AddOutputFlag(cmd, &outputFormat)
 
 	return cmd
 }

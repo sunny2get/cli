@@ -14,7 +14,7 @@
 
 // version_output.go contains rendering helpers shared by the
 // `dr pipelines version` verbs.
-package pipelines
+package pipeline
 
 import (
 	"encoding/json"

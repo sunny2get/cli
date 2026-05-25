@@ -16,7 +16,7 @@
 // endpoints described in pipelines-api/.../controllers/pipeline_input.py.
 // Both draft and locked URL shapes are exercised through Scope/version.
 
-package pipelines
+package pipeline
 
 import (
 	"net/http"

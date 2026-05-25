@@ -22,7 +22,7 @@ import (
 	"testing"
 	"time"
 
-	"github.com/datarobot/cli/internal/pipelines"
+	"github.com/datarobot/cli/internal/pipeline"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )
@@ -51,9 +51,9 @@ func intPtr(v int) *int {
 	return &v
 }
 
-func sampleListResponse() pipelines.DataPage[pipelines.ListItem] {
-	return pipelines.DataPage[pipelines.ListItem]{
-		Data: []pipelines.ListItem{
+func sampleListResponse() pipeline.DataPage[pipeline.ListItem] {
+	return pipeline.DataPage[pipeline.ListItem]{
+		Data: []pipeline.ListItem{
 			{
 				PipelineID:    "683c2a1b4f8e1a2b3c4d5e6f",
 				Name:          "confluence_to_vdb",
@@ -73,7 +73,7 @@ func TestPrintListJSON(t *testing.T) {
 	list := sampleListResponse()
 
 	output := captureStdout(t, func() {
-		err := pipelines.RenderPipelines(pipelines.OutputFormatJSON, list)
+		err := pipeline.RenderPipelines(pipeline.OutputFormatJSON, list)
 		require.NoError(t, err)
 	})
 
@@ -90,7 +90,7 @@ func TestPrintListJSON(t *testing.T) {
 
 func TestPrintListHuman_Empty(t *testing.T) {
 	output := captureStdout(t, func() {
-		require.NoError(t, pipelines.RenderPipelines(pipelines.OutputFormatText, pipelines.DataPage[pipelines.ListItem]{}))
+		require.NoError(t, pipeline.RenderPipelines(pipeline.OutputFormatText, pipeline.DataPage[pipeline.ListItem]{}))
 	})
 
 	assert.Contains(t, output, "No pipelines found.")
@@ -100,7 +100,7 @@ func TestPrintListHuman_RendersHeaderAndRow(t *testing.T) {
 	list := sampleListResponse()
 
 	output := captureStdout(t, func() {
-		require.NoError(t, pipelines.RenderPipelines(pipelines.OutputFormatText, list))
+		require.NoError(t, pipeline.RenderPipelines(pipeline.OutputFormatText, list))
 	})
 
 	assert.Contains(t, output, "Showing 1 of 1")
@@ -123,7 +123,7 @@ func TestPrintListHuman_NoLatestVersion(t *testing.T) {
 	list.Data[0].LatestVersion = nil
 
 	output := captureStdout(t, func() {
-		require.NoError(t, pipelines.RenderPipelines(pipelines.OutputFormatText, list))
+		require.NoError(t, pipeline.RenderPipelines(pipeline.OutputFormatText, list))
 	})
 
 	assert.Contains(t, output, "—")

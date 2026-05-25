@@ -24,7 +24,7 @@
 // defined in pipeline.go). The two graph endpoints return a free-form
 // dict; we surface its known shape via the Graph struct below.
 
-package pipelines
+package pipeline
 
 import (
 	"net/http"

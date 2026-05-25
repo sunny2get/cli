@@ -16,7 +16,7 @@ package list
 
 import (
 	"github.com/datarobot/cli/internal/auth"
-	"github.com/datarobot/cli/internal/pipelines"
+	"github.com/datarobot/cli/internal/pipeline"
 	"github.com/spf13/cobra"
 )
 
@@ -24,7 +24,7 @@ func Cmd() *cobra.Command {
 	var (
 		offset       int
 		limit        int
-		outputFormat pipelines.OutputFormat
+		outputFormat pipeline.OutputFormat
 	)
 
 	cmd := &cobra.Command{
@@ -43,18 +43,18 @@ Example:
 		PreRunE:      auth.EnsureAuthenticatedE,
 		SilenceUsage: true,
 		RunE: func(_ *cobra.Command, _ []string) error {
-			items, err := pipelines.ListEnvironments(offset, limit)
+			items, err := pipeline.ListEnvironments(offset, limit)
 			if err != nil {
 				return err
 			}
 
-			return pipelines.RenderEnvironments(outputFormat, items)
+			return pipeline.RenderEnvironments(outputFormat, items)
 		},
 	}
 
 	cmd.Flags().IntVar(&offset, "offset", 0, "Pagination offset")
 	cmd.Flags().IntVar(&limit, "limit", 0, "Maximum number of environments to return")
-	pipelines.AddOutputFlag(cmd, &outputFormat)
+	pipeline.AddOutputFlag(cmd, &outputFormat)
 
 	return cmd
 }

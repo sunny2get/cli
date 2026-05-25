@@ -23,7 +23,7 @@ import (
 	"strconv"
 
 	"github.com/datarobot/cli/internal/auth"
-	"github.com/datarobot/cli/internal/pipelines"
+	"github.com/datarobot/cli/internal/pipeline"
 	"github.com/datarobot/cli/tui"
 	"github.com/spf13/cobra"
 )
@@ -52,7 +52,7 @@ Example:
 				return fmt.Errorf("invalid version: %q (expected a positive integer)", args[0])
 			}
 
-			err = pipelines.DeleteEnvironmentVersion(environmentID, version)
+			err = pipeline.DeleteEnvironmentVersion(environmentID, version)
 			if err != nil {
 				return err
 			}

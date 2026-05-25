@@ -19,7 +19,7 @@ import (
 	"fmt"
 
 	"github.com/datarobot/cli/internal/auth"
-	"github.com/datarobot/cli/internal/pipelines"
+	"github.com/datarobot/cli/internal/pipeline"
 	"github.com/spf13/cobra"
 )
 
@@ -27,7 +27,7 @@ func Cmd() *cobra.Command {
 	var (
 		description  string
 		mode         string
-		outputFormat pipelines.OutputFormat
+		outputFormat pipeline.OutputFormat
 		fromFile     string
 	)
 
@@ -50,7 +50,7 @@ Example:
 		Args:    cobra.MaximumNArgs(1),
 		PreRunE: auth.EnsureAuthenticatedE,
 		RunE: func(_ *cobra.Command, args []string) error {
-			if mode != "" && mode != pipelines.ModeDraft && mode != pipelines.ModeLocked {
+			if mode != "" && mode != pipeline.ModeDraft && mode != pipeline.ModeLocked {
 				return fmt.Errorf("invalid mode: %s (supported: draft, locked)", mode)
 			}
 
@@ -59,19 +59,19 @@ Example:
 				return err
 			}
 
-			result, err := pipelines.CreatePipeline(filePath, description, mode)
+			result, err := pipeline.CreatePipeline(filePath, description, mode)
 			if err != nil {
 				return err
 			}
 
-			return pipelines.RenderCreateResponse(outputFormat, *result)
+			return pipeline.RenderCreateResponse(outputFormat, *result)
 		},
 	}
 
 	cmd.Flags().StringVar(&description, "description", "", "Optional description for the pipeline")
 	cmd.Flags().StringVar(&mode, "mode", "", "Pipeline mode: draft (default) or locked")
 	cmd.Flags().StringVar(&fromFile, "from-file", "", "Path to the Python file to upload, e.g. --from-file=./my_pipeline.py (alternative to the positional argument)")
-	pipelines.AddOutputFlag(cmd, &outputFormat)
+	pipeline.AddOutputFlag(cmd, &outputFormat)
 
 	return cmd
 }

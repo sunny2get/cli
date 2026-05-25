@@ -18,7 +18,7 @@ import (
 	"fmt"
 
 	"github.com/datarobot/cli/internal/auth"
-	"github.com/datarobot/cli/internal/pipelines"
+	"github.com/datarobot/cli/internal/pipeline"
 	"github.com/spf13/cobra"
 )
 
@@ -27,12 +27,12 @@ func Cmd() *cobra.Command {
 		mode         string
 		offset       int
 		limit        int
-		outputFormat pipelines.OutputFormat
+		outputFormat pipeline.OutputFormat
 	)
 
 	cmd := &cobra.Command{
 		Use:   "list",
-		Short: "List pipelines.",
+		Short: "List pipeline.",
 		Long: `List pipelines registered with the pipelines service.
 
 By default, output is human-readable. Use --output-format json for machine-parseable output.
@@ -44,23 +44,23 @@ Example:
 		Args:    cobra.NoArgs,
 		PreRunE: auth.EnsureAuthenticatedE,
 		RunE: func(_ *cobra.Command, _ []string) error {
-			if mode != "" && mode != pipelines.ModeDraft && mode != pipelines.ModeLocked {
+			if mode != "" && mode != pipeline.ModeDraft && mode != pipeline.ModeLocked {
 				return fmt.Errorf("invalid mode: %s (supported: draft, locked)", mode)
 			}
 
-			list, err := pipelines.ListPipelines(mode, offset, limit)
+			list, err := pipeline.ListPipelines(mode, offset, limit)
 			if err != nil {
 				return err
 			}
 
-			return pipelines.RenderPipelines(outputFormat, *list)
+			return pipeline.RenderPipelines(outputFormat, *list)
 		},
 	}
 
 	cmd.Flags().StringVar(&mode, "mode", "", "Filter by mode: draft or locked")
 	cmd.Flags().IntVar(&offset, "offset", 0, "Pagination offset")
 	cmd.Flags().IntVar(&limit, "limit", 50, "Pagination limit (1-200)")
-	pipelines.AddOutputFlag(cmd, &outputFormat)
+	pipeline.AddOutputFlag(cmd, &outputFormat)
 
 	return cmd
 }

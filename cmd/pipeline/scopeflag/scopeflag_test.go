@@ -18,7 +18,7 @@ import (
 	"io"
 	"testing"
 
-	"github.com/datarobot/cli/internal/pipelines"
+	"github.com/datarobot/cli/internal/pipeline"
 	"github.com/spf13/cobra"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
@@ -52,7 +52,7 @@ func TestFlags_Resolve_DefaultDraft(t *testing.T) {
 
 	scope, version, err := flags.Resolve(cmd)
 	require.NoError(t, err)
-	assert.Equal(t, pipelines.ScopeDraft, scope)
+	assert.Equal(t, pipeline.ScopeDraft, scope)
 	assert.Nil(t, version)
 }
 
@@ -64,7 +64,7 @@ func TestFlags_Resolve_VersionImpliesLocked(t *testing.T) {
 
 	scope, version, err := flags.Resolve(cmd)
 	require.NoError(t, err)
-	assert.Equal(t, pipelines.ScopeLocked, scope)
+	assert.Equal(t, pipeline.ScopeLocked, scope)
 	require.NotNil(t, version)
 	assert.Equal(t, 4, *version)
 }
@@ -101,7 +101,7 @@ func TestFlags_Resolve_VersionZeroIsRespected(t *testing.T) {
 
 	scope, version, err := flags.Resolve(cmd)
 	require.NoError(t, err)
-	assert.Equal(t, pipelines.ScopeLocked, scope)
+	assert.Equal(t, pipeline.ScopeLocked, scope)
 	require.NotNil(t, version)
 	assert.Equal(t, 0, *version)
 }

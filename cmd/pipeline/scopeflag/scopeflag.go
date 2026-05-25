@@ -18,14 +18,14 @@
 package scopeflag
 
 import (
-	"github.com/datarobot/cli/internal/pipelines"
+	"github.com/datarobot/cli/internal/pipeline"
 	"github.com/spf13/cobra"
 )
 
 // Flags holds the values backing the shared --pipeline / --scope /
 // --version flags. Bind() registers them on a cobra command and
 // Resolve(cmd) turns them into a (Scope, *version) pair via
-// pipelines.ResolveScope.
+// pipeline.ResolveScope.
 type Flags struct {
 	PipelineID string
 	Scope      string
@@ -43,7 +43,7 @@ func (f *Flags) Bind(cmd *cobra.Command) {
 // Resolve combines the parsed flags into the canonical (Scope, *version)
 // pair required by the pipelines client. It must be called from RunE (or
 // later) so cmd.Flags().Changed has accurate state.
-func (f *Flags) Resolve(cmd *cobra.Command) (pipelines.Scope, *int, error) {
+func (f *Flags) Resolve(cmd *cobra.Command) (pipeline.Scope, *int, error) {
 	var version *int
 
 	if cmd.Flags().Changed("version") {
@@ -52,5 +52,5 @@ func (f *Flags) Resolve(cmd *cobra.Command) (pipelines.Scope, *int, error) {
 		version = &v
 	}
 
-	return pipelines.ResolveScope(f.Scope, version)
+	return pipeline.ResolveScope(f.Scope, version)
 }

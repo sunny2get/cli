@@ -25,7 +25,7 @@ import (
 
 	"github.com/datarobot/cli/internal/auth"
 	"github.com/datarobot/cli/internal/drapi"
-	"github.com/datarobot/cli/internal/pipelines"
+	"github.com/datarobot/cli/internal/pipeline"
 	"github.com/datarobot/cli/tui"
 	"github.com/spf13/cobra"
 )
@@ -43,7 +43,7 @@ Example:
 		PreRunE:      auth.EnsureAuthenticatedE,
 		SilenceUsage: true,
 		RunE: func(_ *cobra.Command, args []string) error {
-			err := pipelines.DeletePipeline(args[0])
+			err := pipeline.DeletePipeline(args[0])
 			if err != nil {
 				return handleDeleteError(err, args[0])
 			}

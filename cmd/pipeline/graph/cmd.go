@@ -26,7 +26,7 @@ import (
 	"github.com/datarobot/cli/cmd/pipeline/scopeflag"
 	"github.com/datarobot/cli/internal/auth"
 	"github.com/datarobot/cli/internal/drapi"
-	"github.com/datarobot/cli/internal/pipelines"
+	"github.com/datarobot/cli/internal/pipeline"
 	"github.com/datarobot/cli/tui"
 	"github.com/spf13/cobra"
 )
@@ -34,7 +34,7 @@ import (
 func Cmd() *cobra.Command {
 	var (
 		flags        scopeflag.Flags
-		outputFormat pipelines.OutputFormat
+		outputFormat pipeline.OutputFormat
 	)
 
 	cmd := &cobra.Command{
@@ -65,12 +65,12 @@ Example:
 				return err
 			}
 
-			result, err := pipelines.GetGraph(flags.PipelineID, scope, version)
+			result, err := pipeline.GetGraph(flags.PipelineID, scope, version)
 			if err != nil {
 				return handleGraphError(err, flags.PipelineID)
 			}
 
-			if outputFormat == pipelines.OutputFormatJSON {
+			if outputFormat == pipeline.OutputFormatJSON {
 				return printGraphJSON(*result)
 			}
 
@@ -81,7 +81,7 @@ Example:
 	}
 
 	flags.Bind(cmd)
-	pipelines.AddOutputFlag(cmd, &outputFormat)
+	pipeline.AddOutputFlag(cmd, &outputFormat)
 
 	return cmd
 }
@@ -98,7 +98,7 @@ func handleGraphError(err error, pipelineID string) error {
 	return err
 }
 
-func printGraphJSON(g pipelines.Graph) error {
+func printGraphJSON(g pipeline.Graph) error {
 	data, err := json.MarshalIndent(g, "", "  ")
 	if err != nil {
 		return err
@@ -109,7 +109,7 @@ func printGraphJSON(g pipelines.Graph) error {
 	return nil
 }
 
-func printGraphHuman(g pipelines.Graph) {
+func printGraphHuman(g pipeline.Graph) {
 	fmt.Println(tui.BaseTextStyle.Render("Pipeline: " + g.Pipeline.Name))
 
 	if len(g.Nodes) == 0 {

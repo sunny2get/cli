@@ -14,7 +14,7 @@
 
 // schedule_output.go holds the rendering helpers shared by the
 // `dr pipelines schedule` verbs.
-package pipelines
+package pipeline
 
 import (
 	"encoding/json"

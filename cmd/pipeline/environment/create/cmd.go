@@ -18,7 +18,7 @@ import (
 	"errors"
 
 	"github.com/datarobot/cli/internal/auth"
-	"github.com/datarobot/cli/internal/pipelines"
+	"github.com/datarobot/cli/internal/pipeline"
 	"github.com/spf13/cobra"
 )
 
@@ -27,7 +27,7 @@ func Cmd() *cobra.Command {
 		name         string
 		description  string
 		rawPackages  []string
-		outputFormat pipelines.OutputFormat
+		outputFormat pipeline.OutputFormat
 	)
 
 	cmd := &cobra.Command{
@@ -50,24 +50,24 @@ Example:
 				return errors.New("--name is required")
 			}
 
-			packages, err := pipelines.NormalizePackages(rawPackages)
+			packages, err := pipeline.NormalizePackages(rawPackages)
 			if err != nil {
 				return err
 			}
 
-			result, err := pipelines.CreateEnvironment(name, description, packages)
+			result, err := pipeline.CreateEnvironment(name, description, packages)
 			if err != nil {
 				return err
 			}
 
-			return pipelines.RenderEnvironment(outputFormat, *result)
+			return pipeline.RenderEnvironment(outputFormat, *result)
 		},
 	}
 
 	cmd.Flags().StringVar(&name, "name", "", "Environment name (required)")
 	cmd.Flags().StringVar(&description, "description", "", "Optional description")
 	cmd.Flags().StringSliceVar(&rawPackages, "package", nil, "Pip package spec (repeatable, also accepts comma-separated values)")
-	pipelines.AddOutputFlag(cmd, &outputFormat)
+	pipeline.AddOutputFlag(cmd, &outputFormat)
 
 	return cmd
 }

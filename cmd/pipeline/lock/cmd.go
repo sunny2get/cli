@@ -16,12 +16,12 @@ package lock
 
 import (
 	"github.com/datarobot/cli/internal/auth"
-	"github.com/datarobot/cli/internal/pipelines"
+	"github.com/datarobot/cli/internal/pipeline"
 	"github.com/spf13/cobra"
 )
 
 func Cmd() *cobra.Command {
-	var outputFormat pipelines.OutputFormat
+	var outputFormat pipeline.OutputFormat
 
 	cmd := &cobra.Command{
 		Use:   "lock <pipeline-id>",
@@ -36,16 +36,16 @@ Example:
 		PreRunE:      auth.EnsureAuthenticatedE,
 		SilenceUsage: true,
 		RunE: func(_ *cobra.Command, args []string) error {
-			result, err := pipelines.LockPipeline(args[0])
+			result, err := pipeline.LockPipeline(args[0])
 			if err != nil {
 				return err
 			}
 
-			return pipelines.RenderCreateResponse(outputFormat, *result)
+			return pipeline.RenderCreateResponse(outputFormat, *result)
 		},
 	}
 
-	pipelines.AddOutputFlag(cmd, &outputFormat)
+	pipeline.AddOutputFlag(cmd, &outputFormat)
 
 	return cmd
 }

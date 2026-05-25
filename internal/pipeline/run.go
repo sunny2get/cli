@@ -21,7 +21,7 @@
 // segments are preserved to keep the API contract intact while the Go
 // surface is renamed to "run" to match the new product vocabulary.
 
-package pipelines
+package pipeline
 
 import (
 	"net/http"

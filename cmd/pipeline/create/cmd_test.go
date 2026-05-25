@@ -22,7 +22,7 @@ import (
 	"testing"
 	"time"
 
-	"github.com/datarobot/cli/internal/pipelines"
+	"github.com/datarobot/cli/internal/pipeline"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )
@@ -47,8 +47,8 @@ func captureStdout(t *testing.T, fn func()) string {
 	return buf.String()
 }
 
-func sampleCreateResponse() pipelines.CreateResponse {
-	return pipelines.CreateResponse{
+func sampleCreateResponse() pipeline.CreateResponse {
+	return pipeline.CreateResponse{
 		PipelineID: "683c2a1b4f8e1a2b3c4d5e6f",
 		Name:       "confluence_to_vdb",
 		Version:    1,
@@ -63,7 +63,7 @@ func TestPrintCreateJSON(t *testing.T) {
 	resp := sampleCreateResponse()
 
 	output := captureStdout(t, func() {
-		err := pipelines.RenderCreateResponse(pipelines.OutputFormatJSON, resp)
+		err := pipeline.RenderCreateResponse(pipeline.OutputFormatJSON, resp)
 		require.NoError(t, err)
 	})
 
@@ -82,7 +82,7 @@ func TestPrintCreateHuman_WithTasks(t *testing.T) {
 	resp := sampleCreateResponse()
 
 	output := captureStdout(t, func() {
-		require.NoError(t, pipelines.RenderCreateResponse(pipelines.OutputFormatText, resp))
+		require.NoError(t, pipeline.RenderCreateResponse(pipeline.OutputFormatText, resp))
 	})
 
 	assert.Contains(t, output, resp.PipelineID)
@@ -98,7 +98,7 @@ func TestPrintCreateHuman_NoTasks(t *testing.T) {
 	resp.TaskNames = nil
 
 	output := captureStdout(t, func() {
-		require.NoError(t, pipelines.RenderCreateResponse(pipelines.OutputFormatText, resp))
+		require.NoError(t, pipeline.RenderCreateResponse(pipeline.OutputFormatText, resp))
 	})
 
 	assert.Contains(t, output, "—")

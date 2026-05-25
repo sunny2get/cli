@@ -22,7 +22,7 @@ import (
 	"testing"
 	"time"
 
-	"github.com/datarobot/cli/internal/pipelines"
+	"github.com/datarobot/cli/internal/pipeline"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )
@@ -47,8 +47,8 @@ func captureStdout(t *testing.T, fn func()) string {
 	return buf.String()
 }
 
-func sample() pipelines.CreateResponse {
-	return pipelines.CreateResponse{
+func sample() pipeline.CreateResponse {
+	return pipeline.CreateResponse{
 		PipelineID: "abc",
 		Name:       "promo",
 		Version:    3,
@@ -61,7 +61,7 @@ func sample() pipelines.CreateResponse {
 
 func TestPrintLockJSON(t *testing.T) {
 	output := captureStdout(t, func() {
-		require.NoError(t, pipelines.RenderCreateResponse(pipelines.OutputFormatJSON, sample()))
+		require.NoError(t, pipeline.RenderCreateResponse(pipeline.OutputFormatJSON, sample()))
 	})
 
 	var parsed map[string]any
@@ -74,7 +74,7 @@ func TestPrintLockJSON(t *testing.T) {
 
 func TestPrintLockHuman(t *testing.T) {
 	output := captureStdout(t, func() {
-		require.NoError(t, pipelines.RenderCreateResponse(pipelines.OutputFormatText, sample()))
+		require.NoError(t, pipeline.RenderCreateResponse(pipeline.OutputFormatText, sample()))
 	})
 
 	assert.Contains(t, output, "abc")
@@ -88,7 +88,7 @@ func TestPrintLockHuman_NoTasks(t *testing.T) {
 	resp.TaskNames = nil
 
 	output := captureStdout(t, func() {
-		require.NoError(t, pipelines.RenderCreateResponse(pipelines.OutputFormatText, resp))
+		require.NoError(t, pipeline.RenderCreateResponse(pipeline.OutputFormatText, resp))
 	})
 
 	assert.Contains(t, output, "—")

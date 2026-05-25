@@ -12,7 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package pipelines
+package pipeline
 
 import (
 	"bytes"
@@ -91,7 +91,7 @@ type ListItem struct {
 	UpdatedAt     time.Time `json:"updatedAt"`
 }
 
-// CreatePipeline uploads a Python file to POST /api/v2/pipelines.
+// CreatePipeline uploads a Python file to POST /api/v2/pipeline.
 func CreatePipeline(filePath, description, mode string) (*CreateResponse, error) {
 	endpoint, err := config.GetEndpointURL("/api/v2/pipelines")
 	if err != nil {
@@ -117,7 +117,7 @@ func CreatePipeline(filePath, description, mode string) (*CreateResponse, error)
 	return &result, nil
 }
 
-// ListPipelines fetches a paginated list of pipelines from GET /api/v2/pipelines.
+// ListPipelines fetches a paginated list of pipelines from GET /api/v2/pipeline.
 func ListPipelines(mode string, offset, limit int) (*DataPage[ListItem], error) {
 	endpoint, err := config.GetEndpointURL("/api/v2/pipelines")
 	if err != nil {

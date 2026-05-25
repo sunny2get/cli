@@ -21,7 +21,7 @@ import (
 
 	"github.com/datarobot/cli/internal/auth"
 	"github.com/datarobot/cli/internal/drapi"
-	"github.com/datarobot/cli/internal/pipelines"
+	"github.com/datarobot/cli/internal/pipeline"
 	"github.com/datarobot/cli/tui"
 	"github.com/spf13/cobra"
 )
@@ -30,7 +30,7 @@ func Cmd() *cobra.Command {
 	var (
 		pipelineID   string
 		version      int
-		outputFormat pipelines.OutputFormat
+		outputFormat pipeline.OutputFormat
 	)
 
 	cmd := &cobra.Command{
@@ -53,18 +53,18 @@ Example:
 				return errors.New("--version is required and must be > 0")
 			}
 
-			result, err := pipelines.GetSchedule(pipelineID, version, args[0])
+			result, err := pipeline.GetSchedule(pipelineID, version, args[0])
 			if err != nil {
 				return handleGetError(err, args[0])
 			}
 
-			return pipelines.RenderSchedule(outputFormat, *result)
+			return pipeline.RenderSchedule(outputFormat, *result)
 		},
 	}
 
 	cmd.Flags().StringVar(&pipelineID, "pipeline", "", "Pipeline ID")
 	cmd.Flags().IntVar(&version, "version", 0, "Locked pipeline version")
-	pipelines.AddOutputFlag(cmd, &outputFormat)
+	pipeline.AddOutputFlag(cmd, &outputFormat)
 
 	return cmd
 }

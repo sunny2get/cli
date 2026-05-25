@@ -23,7 +23,7 @@ import (
 	"fmt"
 
 	"github.com/datarobot/cli/internal/auth"
-	"github.com/datarobot/cli/internal/pipelines"
+	"github.com/datarobot/cli/internal/pipeline"
 	"github.com/datarobot/cli/tui"
 	"github.com/spf13/cobra"
 )
@@ -53,7 +53,7 @@ Example:
 				return errors.New("--version is required and must be > 0")
 			}
 
-			err := pipelines.DeleteSchedule(pipelineID, version, args[0])
+			err := pipeline.DeleteSchedule(pipelineID, version, args[0])
 			if err != nil {
 				return err
 			}

@@ -19,7 +19,7 @@ import (
 
 	"github.com/datarobot/cli/cmd/pipeline/scopeflag"
 	"github.com/datarobot/cli/internal/auth"
-	"github.com/datarobot/cli/internal/pipelines"
+	"github.com/datarobot/cli/internal/pipeline"
 	"github.com/spf13/cobra"
 )
 
@@ -27,7 +27,7 @@ func Cmd() *cobra.Command {
 	var (
 		flags        scopeflag.Flags
 		fromFile     string
-		outputFormat pipelines.OutputFormat
+		outputFormat pipeline.OutputFormat
 	)
 
 	cmd := &cobra.Command{
@@ -62,23 +62,23 @@ Example:
 				return err
 			}
 
-			payload, err := pipelines.ResolvePayload(args, fromFile)
+			payload, err := pipeline.ResolvePayload(args, fromFile)
 			if err != nil {
 				return err
 			}
 
-			result, err := pipelines.CreateInput(flags.PipelineID, scope, version, payload)
+			result, err := pipeline.CreateInput(flags.PipelineID, scope, version, payload)
 			if err != nil {
 				return err
 			}
 
-			return pipelines.RenderInput(outputFormat, *result)
+			return pipeline.RenderInput(outputFormat, *result)
 		},
 	}
 
 	flags.Bind(cmd)
 	cmd.Flags().StringVar(&fromFile, "from-file", "", "Path to the JSON payload file, e.g. --from-file=./payload.json (alternative to the positional argument)")
-	pipelines.AddOutputFlag(cmd, &outputFormat)
+	pipeline.AddOutputFlag(cmd, &outputFormat)
 
 	return cmd
 }

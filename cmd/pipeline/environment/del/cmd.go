@@ -22,7 +22,7 @@ import (
 	"fmt"
 
 	"github.com/datarobot/cli/internal/auth"
-	"github.com/datarobot/cli/internal/pipelines"
+	"github.com/datarobot/cli/internal/pipeline"
 	"github.com/datarobot/cli/tui"
 	"github.com/spf13/cobra"
 )
@@ -44,7 +44,7 @@ Example:
 		PreRunE:      auth.EnsureAuthenticatedE,
 		SilenceUsage: true,
 		RunE: func(_ *cobra.Command, args []string) error {
-			err := pipelines.DeleteEnvironment(args[0])
+			err := pipeline.DeleteEnvironment(args[0])
 			if err != nil {
 				return err
 			}

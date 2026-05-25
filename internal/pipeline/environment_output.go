@@ -15,7 +15,7 @@
 // environment_output.go centralises the human/JSON output rendering used by
 // the `dr pipelines environment` verbs so each verb file stays focused on
 // flag wiring.
-package pipelines
+package pipeline
 
 import (
 	"encoding/json"

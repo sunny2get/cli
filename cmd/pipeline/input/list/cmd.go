@@ -19,7 +19,7 @@ import (
 
 	"github.com/datarobot/cli/cmd/pipeline/scopeflag"
 	"github.com/datarobot/cli/internal/auth"
-	"github.com/datarobot/cli/internal/pipelines"
+	"github.com/datarobot/cli/internal/pipeline"
 	"github.com/spf13/cobra"
 )
 
@@ -28,7 +28,7 @@ func Cmd() *cobra.Command {
 		flags        scopeflag.Flags
 		offset       int
 		limit        int
-		outputFormat pipelines.OutputFormat
+		outputFormat pipeline.OutputFormat
 	)
 
 	cmd := &cobra.Command{
@@ -59,19 +59,19 @@ Example:
 				return err
 			}
 
-			items, err := pipelines.ListInputs(flags.PipelineID, scope, version, offset, limit)
+			items, err := pipeline.ListInputs(flags.PipelineID, scope, version, offset, limit)
 			if err != nil {
 				return err
 			}
 
-			return pipelines.RenderInputs(outputFormat, items)
+			return pipeline.RenderInputs(outputFormat, items)
 		},
 	}
 
 	flags.Bind(cmd)
 	cmd.Flags().IntVar(&offset, "offset", 0, "Pagination offset")
 	cmd.Flags().IntVar(&limit, "limit", 0, "Maximum number of inputs to return")
-	pipelines.AddOutputFlag(cmd, &outputFormat)
+	pipeline.AddOutputFlag(cmd, &outputFormat)
 
 	return cmd
 }

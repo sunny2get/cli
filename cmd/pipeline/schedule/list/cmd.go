@@ -18,7 +18,7 @@ import (
 	"errors"
 
 	"github.com/datarobot/cli/internal/auth"
-	"github.com/datarobot/cli/internal/pipelines"
+	"github.com/datarobot/cli/internal/pipeline"
 	"github.com/spf13/cobra"
 )
 
@@ -28,7 +28,7 @@ func Cmd() *cobra.Command {
 		version      int
 		offset       int
 		limit        int
-		outputFormat pipelines.OutputFormat
+		outputFormat pipeline.OutputFormat
 	)
 
 	cmd := &cobra.Command{
@@ -51,12 +51,12 @@ Example:
 				return errors.New("--version is required and must be > 0")
 			}
 
-			items, err := pipelines.ListSchedules(pipelineID, version, offset, limit)
+			items, err := pipeline.ListSchedules(pipelineID, version, offset, limit)
 			if err != nil {
 				return err
 			}
 
-			return pipelines.RenderSchedules(outputFormat, items)
+			return pipeline.RenderSchedules(outputFormat, items)
 		},
 	}
 
@@ -64,7 +64,7 @@ Example:
 	cmd.Flags().IntVar(&version, "version", 0, "Locked pipeline version")
 	cmd.Flags().IntVar(&offset, "offset", 0, "Pagination offset")
 	cmd.Flags().IntVar(&limit, "limit", 0, "Maximum number of schedules to return")
-	pipelines.AddOutputFlag(cmd, &outputFormat)
+	pipeline.AddOutputFlag(cmd, &outputFormat)
 
 	return cmd
 }

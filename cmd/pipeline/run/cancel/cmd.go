@@ -20,7 +20,7 @@ import (
 
 	"github.com/datarobot/cli/cmd/pipeline/scopeflag"
 	"github.com/datarobot/cli/internal/auth"
-	"github.com/datarobot/cli/internal/pipelines"
+	"github.com/datarobot/cli/internal/pipeline"
 	"github.com/datarobot/cli/tui"
 	"github.com/spf13/cobra"
 )
@@ -52,7 +52,7 @@ Example:
 				return err
 			}
 
-			err = pipelines.CancelRun(flags.PipelineID, scope, version, args[0])
+			err = pipeline.CancelRun(flags.PipelineID, scope, version, args[0])
 			if err != nil {
 				return err
 			}

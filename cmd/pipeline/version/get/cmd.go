@@ -22,7 +22,7 @@ import (
 
 	"github.com/datarobot/cli/internal/auth"
 	"github.com/datarobot/cli/internal/drapi"
-	"github.com/datarobot/cli/internal/pipelines"
+	"github.com/datarobot/cli/internal/pipeline"
 	"github.com/datarobot/cli/tui"
 	"github.com/spf13/cobra"
 )
@@ -30,7 +30,7 @@ import (
 func Cmd() *cobra.Command {
 	var (
 		pipelineID   string
-		outputFormat pipelines.OutputFormat
+		outputFormat pipeline.OutputFormat
 	)
 
 	cmd := &cobra.Command{
@@ -54,17 +54,17 @@ Example:
 				return fmt.Errorf("invalid version: %q (expected a positive integer)", args[0])
 			}
 
-			result, err := pipelines.GetVersion(pipelineID, versionID)
+			result, err := pipeline.GetVersion(pipelineID, versionID)
 			if err != nil {
 				return handleGetError(err, args[0])
 			}
 
-			return pipelines.RenderVersion(outputFormat, *result)
+			return pipeline.RenderVersion(outputFormat, *result)
 		},
 	}
 
 	cmd.Flags().StringVar(&pipelineID, "pipeline", "", "Pipeline ID")
-	pipelines.AddOutputFlag(cmd, &outputFormat)
+	pipeline.AddOutputFlag(cmd, &outputFormat)
 
 	return cmd
 }

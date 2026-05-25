@@ -14,7 +14,7 @@
 
 // pipeline_output.go holds the rendering helpers shared by the top-level
 // `dr pipelines` verbs (list, get, create, update, lock).
-package pipelines
+package pipeline
 
 import (
 	"encoding/json"

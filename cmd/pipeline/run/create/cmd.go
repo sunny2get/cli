@@ -19,7 +19,7 @@ import (
 
 	"github.com/datarobot/cli/cmd/pipeline/scopeflag"
 	"github.com/datarobot/cli/internal/auth"
-	"github.com/datarobot/cli/internal/pipelines"
+	"github.com/datarobot/cli/internal/pipeline"
 	"github.com/spf13/cobra"
 )
 
@@ -27,7 +27,7 @@ func Cmd() *cobra.Command {
 	var (
 		flags        scopeflag.Flags
 		inputID      string
-		outputFormat pipelines.OutputFormat
+		outputFormat pipeline.OutputFormat
 	)
 
 	cmd := &cobra.Command{
@@ -58,18 +58,18 @@ Example:
 				return err
 			}
 
-			result, err := pipelines.CreateRun(flags.PipelineID, scope, version, inputID)
+			result, err := pipeline.CreateRun(flags.PipelineID, scope, version, inputID)
 			if err != nil {
 				return err
 			}
 
-			return pipelines.RenderRun(outputFormat, *result)
+			return pipeline.RenderRun(outputFormat, *result)
 		},
 	}
 
 	flags.Bind(cmd)
 	cmd.Flags().StringVar(&inputID, "input", "", "Input ID to trigger the run with")
-	pipelines.AddOutputFlag(cmd, &outputFormat)
+	pipeline.AddOutputFlag(cmd, &outputFormat)
 
 	return cmd
 }
