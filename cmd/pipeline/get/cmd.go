@@ -21,13 +21,13 @@ import (
 
 	"github.com/datarobot/cli/internal/auth"
 	"github.com/datarobot/cli/internal/drapi"
-	"github.com/datarobot/cli/internal/pipelines"
+	"github.com/datarobot/cli/internal/pipeline"
 	"github.com/datarobot/cli/tui"
 	"github.com/spf13/cobra"
 )
 
 func Cmd() *cobra.Command {
-	var outputFormat pipelines.OutputFormat
+	var outputFormat pipeline.OutputFormat
 
 	cmd := &cobra.Command{
 		Use:   "get <pipeline-id>",
@@ -43,16 +43,16 @@ Example:
 		PreRunE:      auth.EnsureAuthenticatedE,
 		SilenceUsage: true,
 		RunE: func(_ *cobra.Command, args []string) error {
-			pipeline, err := pipelines.GetPipeline(args[0])
+			result, err := pipeline.GetPipeline(args[0])
 			if err != nil {
 				return handleGetError(err, args[0])
 			}
 
-			return pipelines.RenderPipeline(outputFormat, *pipeline)
+			return pipeline.RenderPipeline(outputFormat, *result)
 		},
 	}
 
-	pipelines.AddOutputFlag(cmd, &outputFormat)
+	pipeline.AddOutputFlag(cmd, &outputFormat)
 
 	return cmd
 }
