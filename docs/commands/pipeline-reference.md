@@ -1,0 +1,210 @@
+<!-- TOOD: remove this file, just to keep track internally while development is happening -->
+# `dr pipeline` command reference
+
+Complete cross-reference of every `dr pipeline …` subcommand, the
+`pipelines-api` endpoint each one calls, sample invocations, and the
+inputs (positional args, flags, request body fields) each command
+accepts.
+
+> All commands below assume the `pipelines` feature is enabled
+> (`DATAROBOT_CLI_FEATURE_PIPELINE=true`).
+
+## How to read this document
+
+- **Method + path** is relative to `/api/v2`. The CLI prefixes the host
+  from `DATAROBOT_CLI_ENDPOINT` (or `DATAROBOT_ENDPOINT`).
+- **Usage** lists the canonical invocation plus common variants.
+- **Inputs** names every positional argument and flag the command
+  accepts. Flags shared by many commands (`--output`, `--scope`,
+  `--version`, `--from-file`, `--skip-auth`) are described once at the
+  bottom under "Shared flag semantics".
+
+---
+
+## Pipeline lifecycle
+
+| Command | API endpoint | Usage | Inputs |
+|---|---|---|---|
+| `dr pipeline create` | `POST /pipelines` | `dr pipeline create ./my_pipeline.py` <br> `dr pipeline create --from-file=./my_pipeline.py` <br> `dr pipeline create ./my_pipeline.py --description "First draft" --mode draft` <br> `dr pipeline create --from-file=./my_pipeline.py --output json` | **Positional:** `<file>` (Python file defining a DataRobot pipeline; mutually exclusive with `--from-file`). <br> **Flags:** `--from-file=<path>`, `--description <text>`, `--mode draft\|locked`, `--output json`. |
+| `dr pipeline list` | `GET /pipelines` | `dr pipeline list` <br> `dr pipeline list --mode draft` <br> `dr pipeline list --offset 50 --limit 10 --output json` | **Flags:** `--mode draft\|locked`, `--offset <n>`, `--limit <n>`, `--output json`. |
+| `dr pipeline get` | `GET /pipelines/{pipeline_id}` | `dr pipeline get <pipeline-id>` <br> `dr pipeline get <pipeline-id> --output json` | **Positional:** `<pipeline-id>` (required). <br> **Flags:** `--output json`. |
+| `dr pipeline update` | `PATCH /pipelines/{pipeline_id}` | `dr pipeline update <pipeline-id> ./my_pipeline.py` <br> `dr pipeline update <pipeline-id> --from-file=./my_pipeline.py` <br> `dr pipeline update <pipeline-id> --from-file=./my_pipeline.py --output json` | **Positional:** `<pipeline-id>` (required), `<file>` (mutually exclusive with `--from-file`). <br> **Flags:** `--from-file=<path>`, `--output json`. |
+| `dr pipeline delete` | `DELETE /pipelines/{pipeline_id}` | `dr pipeline delete <pipeline-id>` | **Positional:** `<pipeline-id>` (required). |
+| `dr pipeline lock` | `PATCH /pipelines/{pipeline_id}/mode` | `dr pipeline lock <pipeline-id>` <br> `dr pipeline lock <pipeline-id> --output json` | **Positional:** `<pipeline-id>` (required). <br> **Flags:** `--output json`. <br> **Body:** none (the API uses absence-of-body as the promote signal). |
+
+---
+
+## Versions
+
+| Command | API endpoint | Usage | Inputs |
+|---|---|---|---|
+| `dr pipeline version list` | `GET /pipelines/{pipeline_id}/versions` | `dr pipeline version list --pipeline <id>` <br> `dr pipeline version list --pipeline <id> --offset 10 --limit 5 --output json` | **Flags:** `--pipeline <id>` (required), `--offset <n>`, `--limit <n>`, `--output json`. |
+| `dr pipeline version get` | `GET /pipelines/{pipeline_id}/versions/{version_id}` | `dr pipeline version get --pipeline <id> 2` <br> `dr pipeline version get --pipeline <id> 2 --output json` | **Positional:** `<version-id>` (positive integer, required). <br> **Flags:** `--pipeline <id>` (required), `--output json`. |
+| `dr pipeline graph` | `GET /pipelines/{pipeline_id}/graph` (draft) <br> `GET /pipelines/{pipeline_id}/versions/{version_id}/graph` (locked) | `dr pipeline graph --pipeline <id>` (draft) <br> `dr pipeline graph --pipeline <id> --version=2` (locked) <br> `dr pipeline graph --pipeline <id> --version=2 --output json` | **Flags:** `--pipeline <id>` (required), `--scope draft\|locked`, `--version <n>`, `--output json`. |
+
+---
+
+## Inputs (`dr pipeline input …`)
+
+Inputs come in two scopes — **draft** (mutable, no version pinned) and
+**locked** (immutable, tied to a frozen version). Scope selection rules
+are documented under "Shared flag semantics" below.
+
+| Command | API endpoint | Usage | Inputs |
+|---|---|---|---|
+| `dr pipeline input create` | `POST /pipelines/{id}/inputs` (draft) <br> `POST /pipelines/{id}/versions/{ver}/inputs` (locked) | `dr pipeline input create --pipeline <id> ./payload.json` <br> `dr pipeline input create --pipeline <id> --from-file=./payload.json` <br> `dr pipeline input create --pipeline <id> --version=2 ./payload.json --output json` | **Positional:** `<payload-file>` (JSON object; mutually exclusive with `--from-file`). <br> **Flags:** `--pipeline <id>` (required), `--scope`, `--version`, `--from-file=<path>`, `--output json`. <br> **Body sent to API:** `{"payload": <object from file>}`. |
+| `dr pipeline input list` | `GET /pipelines/{id}/inputs` (draft) <br> `GET /pipelines/{id}/versions/{ver}/inputs` (locked) | `dr pipeline input list --pipeline <id>` (draft) <br> `dr pipeline input list --pipeline <id> --version=2` (locked) <br> `dr pipeline input list --pipeline <id> --offset 10 --limit 5 --output json` | **Flags:** `--pipeline <id>` (required), `--scope`, `--version`, `--offset <n>`, `--limit <n>`, `--output json`. |
+| `dr pipeline input get` | `GET /pipelines/{id}/inputs/{input_id}` (draft) <br> `GET /pipelines/{id}/versions/{ver}/inputs/{input_id}` (locked) | `dr pipeline input get --pipeline <id> <input-id>` <br> `dr pipeline input get --pipeline <id> --version=2 <input-id> --output json` | **Positional:** `<input-id>` (required). <br> **Flags:** `--pipeline <id>` (required), `--scope`, `--version`, `--output json`. |
+| `dr pipeline input update` | `PATCH /pipelines/{id}/inputs/{input_id}` (draft only) | `dr pipeline input update --pipeline <id> <input-id> ./payload.json` <br> `dr pipeline input update --pipeline <id> <input-id> --from-file=./payload.json --output json` | **Positional:** `<input-id>` (required), `<payload-file>` (JSON object; mutually exclusive with `--from-file`). <br> **Flags:** `--pipeline <id>` (required), `--from-file=<path>`, `--output json`. <br> **Body sent to API:** `{"payload": <object from file>}`. |
+| `dr pipeline input delete` | `DELETE /pipelines/{id}/inputs/{input_id}` (draft) <br> `DELETE /pipelines/{id}/versions/{ver}/inputs/{input_id}` (locked) | `dr pipeline input delete --pipeline <id> <input-id>` <br> `dr pipeline input delete --pipeline <id> --version=2 <input-id>` | **Positional:** `<input-id>` (required). <br> **Flags:** `--pipeline <id>` (required), `--scope`, `--version`. |
+
+---
+
+## Runs (`dr pipeline run …`)
+
+Same draft/locked scope rules as inputs. The wire-level URLs still use
+the legacy term `dispatches` / `dispatch_id`, but the CLI's `--output
+json` remaps these to `run_id` / `covalent_run_id` so the JSON output
+matches the rest of the CLI vocabulary.
+
+| Command | API endpoint | Usage | Inputs |
+|---|---|---|---|
+| `dr pipeline run create` | `POST /pipelines/{id}/dispatches` (draft) <br> `POST /pipelines/{id}/versions/{ver}/dispatches` (locked) | `dr pipeline run create --pipeline <id> --input <input-id>` <br> `dr pipeline run create --pipeline <id> --version=2 --input <input-id> --output json` | **Flags:** `--pipeline <id>` (required), `--input <input-id>` (required), `--scope`, `--version`, `--output json`. <br> **Body sent to API:** `{"input_id": "<input-id>"}`. |
+| `dr pipeline run list` | `GET /pipelines/{id}/dispatches` (draft) <br> `GET /pipelines/{id}/versions/{ver}/dispatches` (locked) | `dr pipeline run list --pipeline <id>` <br> `dr pipeline run list --pipeline <id> --version=2 --output json` | **Flags:** `--pipeline <id>` (required), `--scope`, `--version`, `--offset <n>`, `--limit <n>`, `--output json`. |
+| `dr pipeline run get` | `GET /pipelines/{id}/dispatches/{dispatch_id}` (draft) <br> `GET /pipelines/{id}/versions/{ver}/dispatches/{dispatch_id}` (locked) | `dr pipeline run get --pipeline <id> <run-id>` <br> `dr pipeline run get --pipeline <id> --version=2 <run-id> --output json` | **Positional:** `<run-id>` (required). <br> **Flags:** `--pipeline <id>` (required), `--scope`, `--version`, `--output json`. |
+| `dr pipeline run status` | `GET /pipelines/{id}/dispatches/{dispatch_id}/status` (draft) <br> `GET /pipelines/{id}/versions/{ver}/dispatches/{dispatch_id}/status` (locked) | `dr pipeline run status --pipeline <id> <run-id>` <br> `dr pipeline run status --pipeline <id> --version=2 <run-id> --output json` | **Positional:** `<run-id>` (required). <br> **Flags:** `--pipeline <id>` (required), `--scope`, `--version`, `--output json`. |
+| `dr pipeline run cancel` | `DELETE /pipelines/{id}/dispatches/{dispatch_id}` (draft) <br> `DELETE /pipelines/{id}/versions/{ver}/dispatches/{dispatch_id}` (locked) | `dr pipeline run cancel --pipeline <id> <run-id>` <br> `dr pipeline run cancel --pipeline <id> --version=2 <run-id>` | **Positional:** `<run-id>` (required). <br> **Flags:** `--pipeline <id>` (required), `--scope`, `--version`. |
+
+---
+
+## Schedules (`dr pipeline schedule …`)
+
+Schedules are **locked-only** — every verb requires both `--pipeline` and
+`--version`. There is no draft scope or `--scope` flag.
+
+| Command | API endpoint | Usage | Inputs |
+|---|---|---|---|
+| `dr pipeline schedule create` | `POST /pipelines/{id}/versions/{ver}/schedules` | `dr pipeline schedule create --pipeline <id> --version=2 --cron "0 * * * *" --input <input-id>` <br> `dr pipeline schedule create --pipeline <id> --version=2 --cron "0 9 * * *" --input <input-id> --timezone America/Los_Angeles` <br> `… --output json` | **Flags:** `--pipeline <id>` (required), `--version <n>` (required, > 0), `--cron "<expr>"` (required), `--input <input-id>` (required), `--timezone <iana>` (default `UTC`), `--output json`. <br> **Body sent to API:** `{"cron_expression": "...", "pipeline_input_id": "...", "timezone": "..."}`. |
+| `dr pipeline schedule list` | `GET /pipelines/{id}/versions/{ver}/schedules` | `dr pipeline schedule list --pipeline <id> --version=2` <br> `dr pipeline schedule list --pipeline <id> --version=2 --offset 10 --limit 5 --output json` | **Flags:** `--pipeline <id>` (required), `--version <n>` (required, > 0), `--offset <n>`, `--limit <n>`, `--output json`. |
+| `dr pipeline schedule get` | `GET /pipelines/{id}/versions/{ver}/schedules/{schedule_id}` | `dr pipeline schedule get --pipeline <id> --version=2 <schedule-id>` <br> `… --output json` | **Positional:** `<schedule-id>` (required). <br> **Flags:** `--pipeline <id>` (required), `--version <n>` (required, > 0), `--output json`. |
+| `dr pipeline schedule update` | `PATCH /pipelines/{id}/versions/{ver}/schedules/{schedule_id}` | `dr pipeline schedule update --pipeline <id> --version=2 <schedule-id> --cron "*/15 * * * *"` <br> `dr pipeline schedule update --pipeline <id> --version=2 <schedule-id> --timezone Europe/Berlin` <br> `… --cron "0 0 * * *" --timezone UTC --output json` | **Positional:** `<schedule-id>` (required). <br> **Flags:** `--pipeline <id>` (required), `--version <n>` (required, > 0), `--cron "<expr>"`, `--timezone <iana>`, `--output json`. At least one of `--cron`/`--timezone` must be supplied. <br> **Body sent to API:** `{"cron_expression"?: "...", "timezone"?: "..."}` (only fields you changed). |
+| `dr pipeline schedule delete` | `DELETE /pipelines/{id}/versions/{ver}/schedules/{schedule_id}` | `dr pipeline schedule delete --pipeline <id> --version=2 <schedule-id>` | **Positional:** `<schedule-id>` (required). <br> **Flags:** `--pipeline <id>` (required), `--version <n>` (required, > 0). |
+
+---
+
+## Execution environments (`dr pipeline environment …`)
+
+Pipeline execution environments are named, immutable-versioned bags of
+pip packages. They live at the top of the pipelines namespace (not
+nested under a specific pipeline) and are created/updated independently.
+Each `update` appends a new version; older versions can be deleted
+individually.
+
+| Command | API endpoint | Usage | Inputs |
+|---|---|---|---|
+| `dr pipeline environment create` | `POST /pipelines/environments` | `dr pipeline environment create --name ml-base --package numpy --package pandas==2.0` <br> `dr pipeline environment create --name ml-base --package "numpy,pandas==2.0" --description "training base" --output json` | **Flags:** `--name <name>` (required), `--description <text>`, `--package <spec>` (required, repeatable, also accepts comma-separated values), `--output json`. <br> **Body sent to API:** `{"name": "...", "description"?: "...", "packages": ["..."]}`. |
+| `dr pipeline environment list` | `GET /pipelines/environments` | `dr pipeline environment list` <br> `dr pipeline environment list --offset 50 --limit 10 --output json` | **Flags:** `--offset <n>`, `--limit <n>`, `--output json`. |
+| `dr pipeline environment update` | `PATCH /pipelines/environments/{environment_id}` | `dr pipeline environment update <environment-id> --package scikit-learn` <br> `dr pipeline environment update <environment-id> --package "scikit-learn,torch" --output json` | **Positional:** `<environment-id>` (required). <br> **Flags:** `--package <spec>` (required, repeatable, also accepts comma-separated values), `--output json`. <br> **Body sent to API:** `{"packages": ["..."]}`. |
+| `dr pipeline environment delete` | `DELETE /pipelines/environments/{environment_id}` | `dr pipeline environment delete <environment-id>` | **Positional:** `<environment-id>` (required). |
+| `dr pipeline environment version delete` | `DELETE /pipelines/environments/{environment_id}/versions/{version_id}` | `dr pipeline environment version delete --environment <id> 2` | **Positional:** `<version>` (positive integer, required). <br> **Flags:** `--environment <id>` (required). |
+
+> [!NOTE]
+> The pipelines-api currently does not expose `GET` endpoints for a
+> single environment or for individual versions, so the CLI does not
+> ship `environment get` or `environment version get`. The full version
+> history is only returned in the `create` and `update` responses.
+
+---
+
+## Shared flag semantics
+
+### `--scope` / `--version` (inputs, runs, graph)
+
+The CLI mirrors the API's two URL shapes — `/pipelines/{id}/…` for the
+mutable draft and `/pipelines/{id}/versions/{ver}/…` for a locked
+version — through a pair of optional flags:
+
+| Flags supplied | Resolved scope | URL used |
+|---|---|---|
+| _(none)_ | `draft` | `/pipelines/{id}/…` |
+| `--version=N` | `locked` (auto) | `/pipelines/{id}/versions/N/…` |
+| `--scope=draft` | `draft` | `/pipelines/{id}/…` |
+| `--scope=locked --version=N` | `locked` | `/pipelines/{id}/versions/N/…` |
+| `--scope=draft --version=N` | **error** | `--scope=draft cannot be combined with --version` |
+| `--scope=locked` (no `--version`) | **error** | `--scope=locked requires --version=<n>` |
+| `--scope=garbage` | **error** | `invalid --scope: "garbage" (supported: draft, locked)` |
+
+### `--from-file` / positional file (create + update verbs)
+
+`pipelines create`, `pipelines update`, `pipelines input create`, and
+`pipelines input update` all accept the input file in two equivalent
+ways:
+
+```bash
+dr pipeline create ./my_pipeline.py
+dr pipeline create --from-file=./my_pipeline.py
+```
+
+Exactly one of the two must be supplied; passing both yields
+`specify the file either as a positional argument or via --from-file, not both`,
+and supplying neither yields `a file path is required …` (or
+`a JSON payload file is required …` for input verbs).
+
+### `--output`
+
+Every read/write verb that produces a payload accepts `--output json` to
+emit the underlying response struct as indented JSON. Any other value
+(e.g. `--output yaml`, `--output csv`) is rejected with
+`invalid output format: <value> (supported: json)`.
+
+### `auth` / `--skip-auth`
+
+All verbs run `auth.EnsureAuthenticatedE` as their `PreRunE`. Pass the
+global `--skip-auth` flag (or set `DATAROBOT_CLI_SKIP_AUTH=true`) when
+exercising a local API stub that doesn't implement `/version/`.
+
+---
+
+## Quick endpoint lookup
+
+| API endpoint | CLI command |
+|---|---|
+| `POST /pipelines` | `dr pipeline create` |
+| `GET /pipelines` | `dr pipeline list` |
+| `GET /pipelines/{id}` | `dr pipeline get` |
+| `PATCH /pipelines/{id}` | `dr pipeline update` |
+| `DELETE /pipelines/{id}` | `dr pipeline delete` |
+| `PATCH /pipelines/{id}/mode` | `dr pipeline lock` |
+| `GET /pipelines/{id}/versions` | `dr pipeline version list` |
+| `GET /pipelines/{id}/versions/{ver}` | `dr pipeline version get` |
+| `GET /pipelines/{id}/graph` | `dr pipeline graph` (draft) |
+| `GET /pipelines/{id}/versions/{ver}/graph` | `dr pipeline graph --version=N` |
+| `POST /pipelines/{id}/inputs` | `dr pipeline input create` (draft) |
+| `POST /pipelines/{id}/versions/{ver}/inputs` | `dr pipeline input create --version=N` |
+| `GET /pipelines/{id}/inputs` | `dr pipeline input list` (draft) |
+| `GET /pipelines/{id}/versions/{ver}/inputs` | `dr pipeline input list --version=N` |
+| `GET /pipelines/{id}/inputs/{input_id}` | `dr pipeline input get` (draft) |
+| `GET /pipelines/{id}/versions/{ver}/inputs/{input_id}` | `dr pipeline input get --version=N` |
+| `PATCH /pipelines/{id}/inputs/{input_id}` | `dr pipeline input update` |
+| `DELETE /pipelines/{id}/inputs/{input_id}` | `dr pipeline input delete` (draft) |
+| `DELETE /pipelines/{id}/versions/{ver}/inputs/{input_id}` | `dr pipeline input delete --version=N` |
+| `POST /pipelines/{id}/dispatches` | `dr pipeline run create` (draft) |
+| `POST /pipelines/{id}/versions/{ver}/dispatches` | `dr pipeline run create --version=N` |
+| `GET /pipelines/{id}/dispatches` | `dr pipeline run list` (draft) |
+| `GET /pipelines/{id}/versions/{ver}/dispatches` | `dr pipeline run list --version=N` |
+| `GET /pipelines/{id}/dispatches/{dispatch_id}` | `dr pipeline run get` (draft) |
+| `GET /pipelines/{id}/versions/{ver}/dispatches/{dispatch_id}` | `dr pipeline run get --version=N` |
+| `GET /pipelines/{id}/dispatches/{dispatch_id}/status` | `dr pipeline run status` (draft) |
+| `GET /pipelines/{id}/versions/{ver}/dispatches/{dispatch_id}/status` | `dr pipeline run status --version=N` |
+| `DELETE /pipelines/{id}/dispatches/{dispatch_id}` | `dr pipeline run cancel` (draft) |
+| `DELETE /pipelines/{id}/versions/{ver}/dispatches/{dispatch_id}` | `dr pipeline run cancel --version=N` |
+| `POST /pipelines/{id}/versions/{ver}/schedules` | `dr pipeline schedule create` |
+| `GET /pipelines/{id}/versions/{ver}/schedules` | `dr pipeline schedule list` |
+| `GET /pipelines/{id}/versions/{ver}/schedules/{schedule_id}` | `dr pipeline schedule get` |
+| `PATCH /pipelines/{id}/versions/{ver}/schedules/{schedule_id}` | `dr pipeline schedule update` |
+| `DELETE /pipelines/{id}/versions/{ver}/schedules/{schedule_id}` | `dr pipeline schedule delete` |
+| `POST /pipelines/environments` | `dr pipeline environment create` |
+| `GET /pipelines/environments` | `dr pipeline environment list` |
+| `PATCH /pipelines/environments/{environment_id}` | `dr pipeline environment update` |
+| `DELETE /pipelines/environments/{environment_id}` | `dr pipeline environment delete` |
+| `DELETE /pipelines/environments/{environment_id}/versions/{version_id}` | `dr pipeline environment version delete` |

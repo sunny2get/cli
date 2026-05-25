@@ -316,7 +316,7 @@ If a quickstart script fails, the error is displayed and the command exits. Chec
 - **First-time setup**&mdash;initializing a newly cloned template or starting from scratch.
 - **Quick restart**&mdash;restarting development after a break.
 - **Onboarding**&mdash;helping new team members get started quickly.
-- **CI/CD**&mdash;automating application initialization in pipelines.
+- **CI/CD**&mdash;automating application initialization in pipeline.
 - **General entry point**&mdash;universal command that works whether you have a template or not.
 
 ### ❌ When not to use
