@@ -55,8 +55,8 @@ type GraphEdge struct {
 	ArgIndex  int    `json:"argIndex,omitempty"`
 }
 
-// GraphPipeline mirrors PipelineGraphLattice — the pipeline header in the
-// graph payload. The wire key is still "lattice".
+// GraphPipeline mirrors PipelineGraphMeta — the pipeline header in the
+// graph payload (action 059: wire key renamed from "lattice" to "pipeline").
 type GraphPipeline struct {
 	Name          string `json:"name"`
 	PythonVersion string `json:"pythonVersion"`
@@ -65,7 +65,7 @@ type GraphPipeline struct {
 // Graph mirrors the JSON returned by GET /pipelines/{id}/graph and
 // GET /pipelines/{id}/versions/{ver}/graph.
 type Graph struct {
-	Pipeline GraphPipeline `json:"lattice"`
+	Pipeline GraphPipeline `json:"pipeline"`
 	Nodes    []GraphNode   `json:"nodes"`
 	Edges    []GraphEdge   `json:"edges"`
 }

@@ -72,7 +72,7 @@ func TestGetGraph_DraftURL(t *testing.T) {
 
 		w.Header().Set("Content-Type", "application/json")
 		_, _ = w.Write([]byte(`{
-			"lattice": {"name":"wf","pythonVersion":"3.12"},
+			"pipeline": {"name":"wf","pythonVersion":"3.12"},
 			"nodes": [{"id":0,"type":"function","name":"wf"}],
 			"edges": []
 		}`))
@@ -96,7 +96,7 @@ func TestGetGraph_LockedURL(t *testing.T) {
 		assert.Equal(t, "/api/v2/pipelines/p-1/versions/3/graph", r.URL.Path)
 
 		w.Header().Set("Content-Type", "application/json")
-		_, _ = w.Write([]byte(`{"lattice":{"name":"wf","pythonVersion":"3.12"},"nodes":[],"edges":[]}`))
+		_, _ = w.Write([]byte(`{"pipeline":{"name":"wf","pythonVersion":"3.12"},"nodes":[],"edges":[]}`))
 	}))
 
 	defer srv.Close()
